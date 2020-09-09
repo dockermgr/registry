@@ -6,8 +6,10 @@ DATADIR="/srv/docker/$APPNAME"
 mkdir -p "$DATADIR" && chmod -Rf 777 "$DATADIR"
 
 if docker ps -a | grep "$APPNAME" >/dev/null 2>&1; then
-docker pull registry:v2 && docker restart $APPNAME
-else
+docker stop $APPNAME
+docker rm -f $APPNAME
+docker pull registry
+fi
 docker run -d \
 -p 5000:5000 \
 --restart=always \
@@ -18,4 +20,3 @@ docker run -d \
 -e REGISTRY_HTTP_TLS_KEY=/etc/ssl/CA/CasjaysDev/private/localhost.key \
 -e SEARCH_BACKEND=sqlalchemy \
 registry
-fi
