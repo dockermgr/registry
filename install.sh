@@ -11,7 +11,7 @@ else
 docker run -d \
 -p 5000:5000 \
 --restart=always \
---name registry \
+--name "$APPNAME" \
 -v $DATADIR:/var/lib/registry \
 -v /etc/ssl/CA:/etc/ssl/CA \
 -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/CA/CasjaysDev/certs/localhost.crt \
