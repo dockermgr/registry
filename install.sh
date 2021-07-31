@@ -75,9 +75,9 @@ else
       --privileged \
       -e TZ=${TIMEZONE:-America/New_York} \
       -v "$DATADIR/data":/var/lib/registry:z \
-      -v /etc/ssl/CA:/etc/ssl/CA \
-      -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/CA/CasjaysDev/certs/localhost.crt \
-      -e REGISTRY_HTTP_TLS_KEY=/etc/ssl/CA/CasjaysDev/private/localhost.key \
+      #-v /etc/ssl/CA:/etc/ssl/CA \
+      #-e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/CA/CasjaysDev/certs/localhost.crt \
+      #-e REGISTRY_HTTP_TLS_KEY=/etc/ssl/CA/CasjaysDev/private/localhost.key \
       -e SEARCH_BACKEND=sqlalchemy \
       -p 5000:5000 \
       "$DOCKER_HUB_URL" &>/dev/null
@@ -85,6 +85,7 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if docker ps -a | grep -qs "$APPNAME"; then
+  printf_blue "Service is available at: http://$HOSTNAME:5000"
   printf_green "Successfully setup registry"
 else
   printf_return "Could not setup registry"
