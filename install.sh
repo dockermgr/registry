@@ -17,10 +17,10 @@ if [[ "$1" == "--debug" ]]; then shift 1 && set -xo pipefail && export SCRIPT_OP
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, Casjays Developments
 # @Created       : Saturday, Aug 28, 2021 20:20 EDT
 # @File          : registry
-# @Description   : 
-# @TODO          : 
-# @Other         : 
-# @Resource      : 
+# @Description   :
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -46,8 +46,10 @@ user_installdirs
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define extra functions
 __sudo() { if sudo -n true; then eval sudo "$*"; else eval "$*"; fi; }
-__enable_ssl() { [[ "$SERVER_SSL" = "yes" ]] && [[ "$SERVER_SSL" = "true" ]] && return 0 || return 1; }
+__sudo_root() { sudo -n true && ask_for_password true && eval sudo "$*" || return 1; }
 __ssl_certs() { [ -f "${1:-$SERVER_SSL_CRT}" ] && [ -f "${2:-SERVER_SSL_KEY}" ] && return 0 || return 1; }
+__enable_ssl() { { [[ "$SERVER_SSL" = "yes" ]] || [[ "$SERVER_SSL" = "true" ]]; } && return 0 || return 1; }
+__port_not_in_use() { [[ -d "/etc/nginx/vhosts.d" ]] && grep -Rsq "${1:-$SERVER_PORT}" /etc/nginx/vhosts.d && return 0 || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Make sure the scripts repo is installed
 scripts_check
@@ -55,20 +57,23 @@ REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="registry"
-APPDIR="$HOME/.local/share/docker/registry"
-DATADIR="$HOME/.local/share/docker/registry/files"
-INSTDIR="$HOME/.local/share/dockermgr/docker/registry"
+APPDIR="$HOME/.local/share/srv/docker/registry"
+DATADIR="$HOME/.local/share/srv/docker/registry/files"
+INSTDIR="$HOME/.local/share/dockermgr/registry"
 REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/registry"
 REPORAW="$REPO/raw/$REPO_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 HUB_URL="template/template"
-SERVER_HOST="${SERVER_HOST:-$(hostname -f 2>/dev/null)}"
+SERVER_IP="${CURRIP4:-127.0.0.1}"
+SERVER_HOST="$(hostname -f 2>/dev/null || echo localhost)"
 SERVER_PORT="${SERVER_PORT:-7080}"
 SERVER_PORT_INT="${SERVER_PORT_INT:-5000}"
-SERVER_PORT_SSL="${SERVER_PORT_SSL:-15100}"
-SERVER_PORT_SSL_INT="${SERVER_PORT_SSL_INT:-443}"
+SERVER_PORT_ADMIN="${SERVER_PORT_SSL:-}"
+SERVER_PORT_ADMIN_INT="${SERVER_PORT_SSL_INT:-}"
+SERVER_PORT_OTHER="${SERVER_PORT_SSL:-}"
+SERVER_PORT_OTHER_INT="${SERVER_PORT_SSL_INT:-}"
 SERVER_TIMEZONE="${TZ:-${TIMEZONE:-America/New_York}}"
 SERVER_SSL="${SERVER_SSL:-false}"
 SERVER_SSL_CRT="/etc/ssl/CA/CasjaysDev/certs/localhost.crt"
@@ -114,7 +119,11 @@ if am_i_online; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Copy over data files - keep the same stucture as -v dataDir/mnt:/mount
-[[ -d "$INSTDIR/dataDir" ]] && cp -Rf "$INSTDIR/dataDir/*" "$DATADIR/"
+if [[ -d "$INSTDIR/dataDir" ]] && [[ ! -f "$DATADIR/.installed" ]]; then
+  printf_blue "Copying files to $DATADIR"
+  cp -Rf "$INSTDIR/dataDir/." "$DATADIR/"
+  touch "$DATADIR/.installed"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
 if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
@@ -129,33 +138,28 @@ else
     __sudo docker stop "$APPNAME" &>/dev/null
     __sudo docker rm -f "$APPNAME" &>/dev/null
   fi
-  if __enable_ssl && __ssl_certs "$SERVER_SSL_CRT" "$SERVER_SSL_KEY"; then
-    ## SSL
-    __sudo docker run -d \
-      --name="$APPNAME" \
-      --hostname "$SERVER_HOST" \
-      --restart=unless-stopped \
-      --privileged \
-      -e SEARCH_BACKEND=sqlalchemy \
-      -v /etc/ssl/CA:/etc/ssl/CA \
-      -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/CA/CasjaysDev/certs/localhost.crt \
-      -e REGISTRY_HTTP_TLS_KEY=/etc/ssl/CA/CasjaysDev/private/localhost.key \
-      -e TZ="$SERVER_TIMEZONE" \
-      -v "$DATADIR/data":/data:z \
-      -v "$DATADIR/config":/config:z \
-      -p $SERVER_PORT_SSL:5000 \
-      "$HUB_URL" &>/dev/null
-  else
-    __sudo docker run -d \
-      --name="$APPNAME" \
-      --hostname "$SERVER_HOST" \
-      --restart=unless-stopped \
-      --privileged \
-      -e SEARCH_BACKEND=sqlalchemy \
-      -e TZ="$SERVER_TIMEZONE" \
-      -v "$DATADIR/data":/var/lib/registry:z \
-      -p $REGISTRY_SERVER_PORT:5000 \
-      "$HUB_URL" &>/dev/null
+  __sudo docker run -d \
+    --name="$APPNAME" \
+    --hostname "$SERVER_HOST" \
+    --restart=unless-stopped \
+    --privileged \
+    -e SEARCH_BACKEND=sqlalchemy \
+    -e TZ="$SERVER_TIMEZONE" \
+    -v "$DATADIR/data":/var/lib/registry \
+    -v "$DATADIR/config":/config \
+    -p $SERVER_PORT:$SERVER_PORT_INT \
+    "$HUB_URL" &>/dev/null
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Install nginx proxy
+if [[ ! -f "/etc/nginx/vhosts.d/$APPNAME.conf" ]] && [[ -f "$APPDIR/nginx/proxy.conf" ]]; then
+  if __port_not_in_use "$SERVER_PORT"; then
+    printf_green "Copying the nginx configuration"
+    __sudo_root cp -Rf "$APPDIR/nginx/proxy.conf" "/etc/nginx/vhosts.d/$APPNAME.conf"
+    sed -i "s|REPLACE_APPNAME|$APPNAME|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
+    sed -i "s|REPLACE_SERVER_HOST|$SERVER_HOST|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
+    sed -i "s|REPLACE_SERVER_PORT|$SERVER_PORT|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
+    __sudo_root systemctl reload nginx
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -170,14 +174,16 @@ execute "run_postinst" "Running post install scripts"
 dockermgr_install_version
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run exit function
+run_exit
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if docker ps -a | grep -qs "$APPNAME"; then
   printf_blue "DATADIR in $DATADIR"
   printf_cyan "Installed to $INSTDIR"
-  printf_blue "Service is available at: http://$SERVER_HOST:$SERVER_PORT"
+  printf_blue "Service is running on: $SERVER_IP:$SERVER_PORT"
+  printf_blue "and should be available at: $SERVER_HOST:$SERVER_PORT"
 else
   printf_error "Something seems to have gone wrong with the install"
 fi
-run_exit
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
