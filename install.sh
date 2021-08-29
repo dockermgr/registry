@@ -1,71 +1,122 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="registry-web"
-VERSION="202107311147-git"
+APPNAME="registry"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#set opts
+# Set bash options
+if [[ "$1" == "--debug" ]]; then shift 1 && set -xo pipefail && export SCRIPT_OPTS="--debug" && export _DEBUG="on"; fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202107311147-git
-# @Author        : casjay
-# @Contact       : casjay
+##@Version       : 202108282020-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : dockermgr --help
-# @Copyright     : Copyright: (c) 2021 casjay, casjay
-# @Created       : Saturday, Jul 31, 2021 11:47 EDT
-# @File          : registry-web
-# @Description   : registry-web docker container installer
-# @TODO          :
-# @Other         :
-# @Resource      :
+# @ReadME        : registry --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, Casjays Developments
+# @Created       : Saturday, Aug 28, 2021 20:20 EDT
+# @File          : registry
+# @Description   : 
+# @TODO          : 
+# @Other         : 
+# @Resource      : 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/$GIT_DEFAULT_BRANCH/functions}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-app-installer.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/main/functions}"
+connect_test() { ping -c1 1.1.1.1 &>/dev/null || curl --disable -LSs --connect-timeout 3 --retry 0 --max-time 1 1.1.1.1 2>/dev/null | grep -e "HTTP/[0123456789]" | grep -q "200" -n1 &>/dev/null; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+elif connect_test; then
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/$SCRIPTSFUNCTFILE"
 else
   echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
-dockermgr_install
-__options "$@"
+# Call the main function
+user_installdirs
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Define extra functions
 __sudo() { if sudo -n true; then eval sudo "$*"; else eval "$*"; fi; }
+__enable_ssl() { [[ "$SERVER_SSL" = "yes" ]] && [[ "$SERVER_SSL" = "true" ]] && return 0 || return 1; }
+__ssl_certs() { [ -f "${1:-$SERVER_SSL_CRT}" ] && [ -f "${2:-SERVER_SSL_KEY}" ] && return 0 || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Begin installer
-APPNAME="registry-web"
-DOCKER_HUB_URL="konradkleine/docker-registry-frontend:v2"
-REGISTRY_WEB_SERVER_PORT="${REGISTRY_WEB_SERVER_PORT:-7080}"
-REGISTRY_WEB_SERVER_HOST="${REGISTRY_WEB_SERVER_HOST:-$(hostname -f 2>/dev/null)}"
-REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/$APPNAME"
-REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
-REGISTRY_WEB_SERVER_TIMEZONE="${TZ:-${TIMEZONE:-America/New_York}}"
+# Make sure the scripts repo is installed
+scripts_check
+REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if user_is_root; then
-  APPDIR="$CASJAYSDEVDIR/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$CASJAYSDEVDIR/$SCRIPTS_PREFIX/$APPNAME"
-  DATADIR="/srv/docker/$APPNAME"
-else
-  APPDIR="$HOME/.local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$HOME/.local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  DATADIR="$HOME/.local/share/srv/docker/$APPNAME"
-fi
+# Defaults
+APPNAME="registry"
+APPDIR="$HOME/.local/share/docker/registry"
+DATADIR="$HOME/.local/share/docker/registry/files"
+INSTDIR="$HOME/.local/share/dockermgr/docker/registry"
+REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/registry"
 REPORAW="$REPO/raw/$REPO_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__sudo mkdir -p "$DATADIR/data"
-__sudo chmod -Rf 777 "$DATADIR"
+# Setup plugins
+HUB_URL="template/template"
+SERVER_HOST="${SERVER_HOST:-$(hostname -f 2>/dev/null)}"
+SERVER_PORT="${SERVER_PORT:-7080}"
+SERVER_PORT_INT="${SERVER_PORT_INT:-5000}"
+SERVER_PORT_SSL="${SERVER_PORT_SSL:-15100}"
+SERVER_PORT_SSL_INT="${SERVER_PORT_SSL_INT:-443}"
+SERVER_TIMEZONE="${TZ:-${TIMEZONE:-America/New_York}}"
+SERVER_SSL="${SERVER_SSL:-false}"
+SERVER_SSL_CRT="/etc/ssl/CA/CasjaysDev/certs/localhost.crt"
+SERVER_SSL_KEY="/etc/ssl/CA/CasjaysDev/private/localhost.key"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+dockermgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Call the dockermgr function
+dockermgr_install
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Script options IE: --help
+show_optvars "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Requires root - no point in continuing
+#sudoreq "$0 $*" # sudo required
+#sudorun # sudo optional
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Do not update - add --force to overwrite
+#installer_noupdate "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# initialize the installer
+dockermgr_run_init
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Ensure directories exist
+ensure_dirs
+ensure_perms
+__sudo mkdir -p "$DATADIR/data"
+__sudo mkdir -p "$DATADIR/config"
+__sudo chmod -Rf 777 "$APPDIR"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Clone/update the repo
+if am_i_online; then
+  if [ -d "$INSTDIR/.git" ]; then
+    message="Updating $APPNAME configurations"
+    execute "git_update $INSTDIR" "$message"
+  else
+    message="Installing $APPNAME configurations"
+    execute "git_clone $REPO $INSTDIR" "$message"
+  fi
+  # exit on fail
+  failexitcode $? "$message has failed"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Copy over data files - keep the same stucture as -v dataDir/mnt:/mount
+[[ -d "$INSTDIR/dataDir" ]] && cp -Rf "$INSTDIR/dataDir/*" "$DATADIR/"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main progam
 if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
   printf_blue "Installing containers using docker compose"
   sed -i "s|REPLACE_DATADIR|$DATADIR" "$INSTDIR/docker-compose.yml"
@@ -78,41 +129,57 @@ else
     __sudo docker stop "$APPNAME" &>/dev/null
     __sudo docker rm -f "$APPNAME" &>/dev/null
   fi
-  if [ -f "/etc/ssl/CA/CasjaysDev/certs/localhost.crt" ] && [ -f "/etc/ssl/CA/CasjaysDev/private/localhost.key" ]; then
+  if __enable_ssl && __ssl_certs "$SERVER_SSL_CRT" "$SERVER_SSL_KEY"; then
     ## SSL
     __sudo docker run -d \
       --name="$APPNAME" \
-      --hostname "$APPNAME" \
+      --hostname "$SERVER_HOST" \
       --restart=unless-stopped \
       --privileged \
       -e SEARCH_BACKEND=sqlalchemy \
       -v /etc/ssl/CA:/etc/ssl/CA \
       -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/ssl/CA/CasjaysDev/certs/localhost.crt \
       -e REGISTRY_HTTP_TLS_KEY=/etc/ssl/CA/CasjaysDev/private/localhost.key \
-      -e TZ="$REGISTRY_SERVER_TIMEZONE" \
+      -e TZ="$SERVER_TIMEZONE" \
       -v "$DATADIR/data":/data:z \
       -v "$DATADIR/config":/config:z \
-      -p "$REGISTRY_SERVER_PORT":5000 \
-      "$DOCKER_HUB_URL" &>/dev/null
+      -p $SERVER_PORT_SSL:5000 \
+      "$HUB_URL" &>/dev/null
   else
     __sudo docker run -d \
       --name="$APPNAME" \
-      --hostname "$APPNAME" \
+      --hostname "$SERVER_HOST" \
       --restart=unless-stopped \
       --privileged \
       -e SEARCH_BACKEND=sqlalchemy \
-      -e TZ="$REGISTRY_SERVER_TIMEZONE" \
+      -e TZ="$SERVER_TIMEZONE" \
       -v "$DATADIR/data":/var/lib/registry:z \
-      -p "$REGISTRY_SERVER_PORT":5000 \
-      "$DOCKER_HUB_URL" &>/dev/null
+      -p $REGISTRY_SERVER_PORT:5000 \
+      "$HUB_URL" &>/dev/null
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if docker ps -a | grep -qs "$APPNAME"; then
-  printf_blue "Service is available at: http://$REGISTRY_WEB_SERVER_HOST:$REGISTRY_WEB_SERVER_PORT"
-else
-  false
-fi
+# run post install scripts
+run_postinst() {
+  dockermgr_run_post
+}
+#
+execute "run_postinst" "Running post install scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# End script
-exit $?
+# create version file
+dockermgr_install_version
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# run exit function
+if docker ps -a | grep -qs "$APPNAME"; then
+  printf_blue "DATADIR in $DATADIR"
+  printf_cyan "Installed to $INSTDIR"
+  printf_blue "Service is available at: http://$SERVER_HOST:$SERVER_PORT"
+else
+  printf_error "Something seems to have gone wrong with the install"
+fi
+run_exit
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
