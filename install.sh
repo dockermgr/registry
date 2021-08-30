@@ -139,7 +139,7 @@ if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
     __sudo docker-compose up -d &>/dev/null
   fi
 else
-  if dockerps -a | grep -qsw "$APPNAME"; then
+  if docker ps -a | grep -qsw "$APPNAME"; then
     __sudo docker stop "$APPNAME" &>/dev/null
     __sudo docker rm -f "$APPNAME" &>/dev/null
   fi
@@ -181,7 +181,7 @@ execute "run_postinst" "Running post install scripts"
 dockermgr_install_version
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run exit function
-if dockerps -a | grep -qs "$APPNAME"; then
+if docker ps -a | grep -qs "$APPNAME"; then
   printf_blue "DATADIR in $DATADIR"
   printf_cyan "Installed to $INSTDIR"
   [[ -n "$SERVER_PORT" ]] && printf_blue "Service is running on: $SERVER_IP:$SERVER_PORT"
