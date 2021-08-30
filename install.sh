@@ -107,7 +107,7 @@ ensure_perms
 __sudo mkdir -p "$DATADIR/data"
 __sudo mkdir -p "$DATADIR/config"
 __sudo chmod -Rf 777 "$APPDIR"
-rm -Rf "$DATADIR/dataDir"/*/.gitkeep &>/dev/null
+find "$DATADIR" -name ".gitkeep" -type f -exec rm -rf {} \; &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Clone/update the repo
 if am_i_online; then
