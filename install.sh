@@ -183,7 +183,7 @@ if docker ps -a | grep -qs "$APPNAME"; then
 else
   printf_error "Something seems to have gone wrong with the install"
 fi
-run_exit
+run_exit &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
