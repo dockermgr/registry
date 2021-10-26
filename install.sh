@@ -70,7 +70,7 @@ NGINX_HTTP="${NGINX_HTTP:-80}"
 NGINX_HTTPS="${NGINX_HTTPS:-443}"
 SERVER_IP="${CURRIP4:-127.0.0.1}"
 SERVER_LISTEN="${SERVER_LISTEN:-$SERVER_IP}"
-SERVER_HOST="$(hostname -f 2>/dev/null || echo localhost)"
+SERVER_HOST="${APPNAME}.$(hostname -d 2>/dev/null | grep '^' || echo local)"
 SERVER_PORT="${SERVER_PORT:-7080}"
 SERVER_PORT_INT="${SERVER_PORT_INT:-5000}"
 SERVER_PORT_ADMIN="${SERVER_PORT_ADMIN:-}"
@@ -78,9 +78,11 @@ SERVER_PORT_ADMIN_INT="${SERVER_PORT_ADMIN_INT:-}"
 SERVER_PORT_OTHER="${SERVER_PORT_OTHER:-}"
 SERVER_PORT_OTHER_INT="${SERVER_PORT_OTHER_INT:-}"
 SERVER_TIMEZONE="${TZ:-${TIMEZONE:-America/New_York}}"
-SERVER_SSL="${SERVER_SSL:-false}"
 SERVER_SSL_CRT="/etc/ssl/CA/CasjaysDev/certs/localhost.crt"
 SERVER_SSL_KEY="/etc/ssl/CA/CasjaysDev/private/localhost.key"
+[[ -f "$SERVER_SSL_CRT" ]] && [[ -f "$SERVER_SSL_KEY" ]] && SERVER_SSL="true"
+[[ -n "$SERVER_SSL" ]] || SERVER_SSL="${SERVER_SSL:-false}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 dockermgr_req_version "$APPVERSION"
@@ -173,6 +175,16 @@ fi
 # run post install scripts
 run_postinst() {
   dockermgr_run_post
+  if ! grep -sq "$SERVER_HOST" /etc/hosts; then
+    if [[ -n "$SERVER_PORT_INT" ]]; then
+      if [[ $(hostname -d 2>/dev/null | grep '^') = 'local' ]]; then
+        echo "$SERVER_LISTEN     $APPNAME.local" | sudo tee -a /etc/hosts &>/dev/null
+      else
+        echo "$SERVER_LISTEN     $APPNAME.local" | sudo tee -a /etc/hosts &>/dev/null
+        echo "$SERVER_LISTEN     $SERVER_HOST" | sudo tee -a /etc/hosts &>/dev/null
+      fi
+    fi
+  fi
 }
 #
 execute "run_postinst" "Running post install scripts"
@@ -185,7 +197,7 @@ if docker ps -a | grep -qs "$APPNAME"; then
   printf_blue "DATADIR in $DATADIR"
   printf_cyan "Installed to $INSTDIR"
   [[ -n "$SERVER_PORT" ]] && printf_blue "Service is running on: $SERVER_IP:$SERVER_PORT"
-  [[ -n "$SERVER_PORT" ]] && printf_blue "and should be available at: $SERVER_HOST:$SERVER_PORT"
+  [[ -n "$SERVER_PORT" ]] && printf_blue "and should be available at: http://$SERVER_LISTEN:$SERVER_PORT_ADMIN or http://$SERVER_HOST:$SERVER_PORT_ADMIN"
   [[ -z "$SERVER_PORT" ]] && printf_yellow "This container does not have a web interface"
 else
   printf_error "Something seems to have gone wrong with the install"
