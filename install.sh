@@ -151,14 +151,14 @@ else
     -v "$DATADIR/config":/config \
     -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
-    -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
+    -v /etc/letsencrypt/live/domain:/certs \
     -e TZ="$SERVER_TIMEZONE" \
     -e SEARCH_BACKEND="sqlalchemy" \
     -e REGISTRY_AUTH="htpasswd" \
     -e REGISTRY_AUTH_HTPASSWD_REALM="Registry" \
     -e REGISTRY_AUTH_HTPASSWD_PATH="/auth/htpasswd" \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE="/etc/letsencrypt/live/domain/fullchain.pem" \
-    -e REGISTRY_HTTP_TLS_KEY="/etc/letsencrypt/live/domain/privkey.pem" \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/fullchain.pem" \
+    -e REGISTRY_HTTP_TLS_KEY="/certs/privkey.pem" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
     "$HUB_URL" 1>/dev/null
 fi
