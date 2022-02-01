@@ -142,8 +142,8 @@ if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
     __sudo docker-compose up -d &>/dev/null
   fi
 else
-  __sudo docker stop "$APPNAME"  #&>/dev/null
-  __sudo docker rm -f "$APPNAME" #&>/dev/null
+  __sudo docker stop "$APPNAME" &>/dev/null
+  __sudo docker rm -f "$APPNAME" &>/dev/null
   __sudo docker run -d \
     --name="$APPNAME" \
     --privileged \
@@ -161,7 +161,7 @@ else
     -e REGISTRY_HTTP_TLS_CERTIFICATE="/etc/letsencrypt/live/domain/fullchain.pem" \
     -e REGISTRY_HTTP_TLS_KEY="/etc/letsencrypt/live/domain/privkey.pem" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
-    "$HUB_URL" #&>/dev/null
+    "$HUB_URL" 1>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
