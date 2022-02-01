@@ -65,7 +65,7 @@ REPORAW="$REPO/raw/$REPO_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
-HUB_URL="registry"
+HUB_URL="registry:2"
 NGINX_HTTP="${NGINX_HTTP:-80}"
 NGINX_HTTPS="${NGINX_HTTPS:-443}"
 SERVER_IP="${CURRIP4:-127.0.0.1}"
@@ -146,14 +146,22 @@ else
     __sudo docker rm -f "$APPNAME" &>/dev/null
   fi
   __sudo docker run -d \
+    --privileged \
+    --restart=unless-stopped \
     --name="$APPNAME" \
     --hostname "$SERVER_HOST" \
-    --restart=unless-stopped \
-    --privileged \
-    -e SEARCH_BACKEND=sqlalchemy \
     -e TZ="$SERVER_TIMEZONE" \
-    -v "$DATADIR/data":/var/lib/registry \
+    -e SEARCH_BACKEND=sqlalchemy \
+    -e "REGISTRY_AUTH=htpasswd" \
+    -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+    -e REGISTRY_AUTH_HTPASSWD_PATH=/config/auth/htpasswd \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/letsencrypt/live/domain/fullchain.pem \
+    -e REGISTRY_HTTP_TLS_KEY=/etc/letsencrypt/live/domain/privkey.pem \
+    -v /var/lib/docker/storage/registry/auth:/auth \
+    -v /var/lib/docker/storage/registry/data:/var/lib/registry \
+    -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
     -v "$DATADIR/config":/config \
+    -v "$DATADIR/data":/var/lib/registry \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
     "$HUB_URL" &>/dev/null
 fi
@@ -198,6 +206,7 @@ if docker ps -a | grep -qs "$APPNAME"; then
   printf_cyan "Installed to $INSTDIR"
   [[ -n "$SERVER_PORT" ]] && printf_blue "Service is running on: $SERVER_IP:$SERVER_PORT"
   [[ -n "$SERVER_PORT" ]] && printf_blue "and should be available at: http://$SERVER_LISTEN:$SERVER_PORT or http://$SERVER_HOST:$SERVER_PORT"
+  [[ -f "$DATADIR/config/auth/htpasswd" ]] && printf_purple "Username: root and Password: toor"
   [[ -z "$SERVER_PORT" ]] && printf_yellow "This container does not have a web interface"
 else
   printf_error "Something seems to have gone wrong with the install"
