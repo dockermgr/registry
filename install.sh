@@ -158,14 +158,14 @@ else
     -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/certs/localhost.crt" \
     -e REGISTRY_HTTP_TLS_KEY="/certs/private/localhost.key" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
-    "$HUB_URL" 1>/dev/null
+    "$HUB_URL" &>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
 if [[ ! -f "/etc/nginx/vhosts.d/$APPNAME.conf" ]] && [[ -f "$INSTDIR/nginx/proxy.conf" ]]; then
   if __port_not_in_use "$SERVER_PORT"; then
     printf_green "Copying the nginx configuration"
-    __sudo_root cp -Rf "$APPDIR/nginx/proxy.conf" "/etc/nginx/vhosts.d/$APPNAME.conf"
+    __sudo_root cp -Rf "$INSTDIR/nginx/proxy.conf" "/etc/nginx/vhosts.d/$APPNAME.conf"
     sed -i "s|REPLACE_APPNAME|$APPNAME|g" "/etc/nginx/vhosts.d/$APPNAME.conf" &>/dev/null
     sed -i "s|REPLACE_NGINX_HTTP|$NGINX_HTTP|g" "/etc/nginx/vhosts.d/$APPNAME.conf" &>/dev/null
     sed -i "s|REPLACE_NGINX_HTTPS|$NGINX_HTTPS|g" "/etc/nginx/vhosts.d/$APPNAME.conf" &>/dev/null
