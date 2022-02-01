@@ -65,7 +65,7 @@ REPORAW="$REPO/raw/$REPO_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
-HUB_URL="registry:2"
+HUB_URL="registry"
 NGINX_HTTP="${NGINX_HTTP:-80}"
 NGINX_HTTPS="${NGINX_HTTPS:-443}"
 SERVER_IP="${CURRIP4:-127.0.0.1}"
@@ -133,6 +133,7 @@ if [[ -d "$INSTDIR/dataDir" ]] && [[ ! -f "$DATADIR/.installed" ]]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
+set -x
 if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
   printf_blue "Installing containers using dockercompose"
   sed -i "s|REPLACE_DATADIR|$DATADIR" "$INSTDIR/docker-compose.yml"
@@ -141,28 +142,26 @@ if [ -f "$INSTDIR/docker-compose.yml" ] && cmd_exists docker-compose; then
     __sudo docker-compose up -d &>/dev/null
   fi
 else
-  if docker ps -a | grep -qsw "$APPNAME"; then
-    __sudo docker stop "$APPNAME" &>/dev/null
-    __sudo docker rm -f "$APPNAME" &>/dev/null
-  fi
+  __sudo docker stop "$APPNAME"  #&>/dev/null
+  __sudo docker rm -f "$APPNAME" #&>/dev/null
   __sudo docker run -d \
+    --name="$APPNAME" \
     --privileged \
     --restart=unless-stopped \
-    --name="$APPNAME" \
     --hostname "$SERVER_HOST" \
     -v "$DATADIR/config":/config \
     -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
     -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
-    -e "TZ=$SERVER_TIMEZONE" \
-    -e "SEARCH_BACKEND=sqlalchemy" \
-    -e "REGISTRY_AUTH=htpasswd" \
-    -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-    -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
-    -e "REGISTRY_HTTP_TLS_CERTIFICATE=/etc/letsencrypt/live/domain/fullchain.pem" \
-    -e "REGISTRY_HTTP_TLS_KEY=/etc/letsencrypt/live/domain/privkey.pem" \
+    -e TZ="$SERVER_TIMEZONE" \
+    -e SEARCH_BACKEND="sqlalchemy" \
+    -e REGISTRY_AUTH="htpasswd" \
+    -e REGISTRY_AUTH_HTPASSWD_REALM="Registry" \
+    -e REGISTRY_AUTH_HTPASSWD_PATH="/auth/htpasswd" \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE="/etc/letsencrypt/live/domain/fullchain.pem" \
+    -e REGISTRY_HTTP_TLS_KEY="/etc/letsencrypt/live/domain/privkey.pem" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
-    "$HUB_URL" &>/dev/null
+    "$HUB_URL" #&>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
@@ -182,6 +181,7 @@ fi
 # run post install scripts
 run_postinst() {
   dockermgr_run_post
+  [[ -w "/etc/hosts" ]] || return 0
   if ! grep -sq "$SERVER_HOST" /etc/hosts; then
     if [[ -n "$SERVER_PORT_INT" ]]; then
       if [[ $(hostname -d 2>/dev/null | grep '^') = 'local' ]]; then
