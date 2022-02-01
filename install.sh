@@ -154,14 +154,13 @@ else
     -e SEARCH_BACKEND=sqlalchemy \
     -e "REGISTRY_AUTH=htpasswd" \
     -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-    -e REGISTRY_AUTH_HTPASSWD_PATH=/config/auth/htpasswd \
+    -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
     -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/letsencrypt/live/domain/fullchain.pem \
     -e REGISTRY_HTTP_TLS_KEY=/etc/letsencrypt/live/domain/privkey.pem \
-    -v /var/lib/docker/storage/registry/auth:/auth \
-    -v /var/lib/docker/storage/registry/data:/var/lib/registry \
-    -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
     -v "$DATADIR/config":/config \
+    -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
+    -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
     "$HUB_URL" &>/dev/null
 fi
