@@ -58,8 +58,8 @@ REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
 # Defaults
 APPNAME="registry"
 APPDIR="$HOME/.local/share/srv/docker/registry"
-DATADIR="$HOME/.local/share/srv/docker/registry/files"
 INSTDIR="$HOME/.local/share/dockermgr/registry"
+DATADIR="$HOME/.local/share/srv/docker/registry/files"
 REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/registry"
 REPORAW="$REPO/raw/$REPO_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
@@ -150,17 +150,17 @@ else
     --restart=unless-stopped \
     --name="$APPNAME" \
     --hostname "$SERVER_HOST" \
-    -e TZ="$SERVER_TIMEZONE" \
-    -e SEARCH_BACKEND=sqlalchemy \
-    -e "REGISTRY_AUTH=htpasswd" \
-    -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-    -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE=/etc/letsencrypt/live/domain/fullchain.pem \
-    -e REGISTRY_HTTP_TLS_KEY=/etc/letsencrypt/live/domain/privkey.pem \
     -v "$DATADIR/config":/config \
     -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
     -v /etc/letsencrypt/live/domain:/etc/letsencrypt/live/domain \
+    -e "TZ=$SERVER_TIMEZONE" \
+    -e "SEARCH_BACKEND=sqlalchemy" \
+    -e "REGISTRY_AUTH=htpasswd" \
+    -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+    -e "REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd" \
+    -e "REGISTRY_HTTP_TLS_CERTIFICATE=/etc/letsencrypt/live/domain/fullchain.pem" \
+    -e "REGISTRY_HTTP_TLS_KEY=/etc/letsencrypt/live/domain/privkey.pem" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
     "$HUB_URL" &>/dev/null
 fi
