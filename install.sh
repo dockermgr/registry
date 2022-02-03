@@ -151,6 +151,7 @@ else
     -v "$DATADIR/data":/var/lib/registry \
     -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
     -v /etc/ssl/CA/CasjaysDev:/etc/ssl/tls \
+    -e REGISTRY_HTTP_SECRET=registrysecret \
     -e TZ="$SERVER_TIMEZONE" \
     -e SEARCH_BACKEND="sqlalchemy" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
