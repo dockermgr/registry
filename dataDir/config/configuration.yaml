@@ -84,6 +84,21 @@ storage:
   #   secure: optional ssl setting
   #   chunksize: optional size valye
   #   rootdirectory: optional root directory
+  # inmemory: # This driver takes no parameters
+  delete:
+    enabled: false
+  redirect:
+    disable: false
+  cache:
+    blobdescriptor: redis
+  maintenance:
+    uploadpurging:
+      enabled: true
+      age: 168h
+      interval: 24h
+      dryrun: false
+    readonly:
+      enabled: false
 
 http:
   #addr: localhost:5000
@@ -102,10 +117,10 @@ http:
     #   cachefile: /path/to/cache-file
     #   email: emailused@letsencrypt.com
     #   hosts: [myregistryaddress.org]
-  # debug:
-  #   addr: localhost:5001
-  #   prometheus:
-  #     enabled: true
+  debug:
+    #   addr: localhost:5001
+    #   prometheus:
+    enabled: true
   #     path: /metrics
   headers:
     X-Content-Type-Options: [nosniff]
@@ -126,26 +141,6 @@ auth:
   # htpasswd:
   #     realm: basic-realm
   # path: /auth/htpasswd
-
-  inmemory: # This driver takes no parameters
-
-  delete:
-    enabled: false
-
-  redirect:
-    disable: false
-
-  cache:
-    blobdescriptor: redis
-
-  maintenance:
-    uploadpurging:
-      enabled: true
-      age: 168h
-      interval: 24h
-      dryrun: false
-    readonly:
-      enabled: false
 
 middleware:
   registry:
