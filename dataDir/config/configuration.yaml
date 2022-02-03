@@ -99,7 +99,7 @@ health:
     interval: 10s
     threshold: 3
   file:
-    - file: /etc/docker/registry/config.yml
+    - file: /config/.gitkeep
       interval: 10s
   # http:
   #   - uri: http://server.to.check/must/return/200
