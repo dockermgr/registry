@@ -22,8 +22,6 @@ log:
   #       to:
   #         - errors@example.com
 
-loglevel: debug # deprecated: use "log"
-
 storage:
   filesystem:
     rootdirectory: /var/lib/registry
@@ -115,18 +113,19 @@ http:
     disabled: false
 
 auth:
+  # none:
   # silly:
   #   realm: silly-realm
   #   service: silly-service
-  token:
-    autoredirect: true
-    realm: token-realm
-    service: token-service
-    issuer: registry-token-issuer
-    rootcertbundle: /root/certs/bundle
-  htpasswd:
-    realm: basic-realm
-    path: /auth/htpasswd
+  # token:
+  #   autoredirect: true
+  #   realm: token-realm
+  #   service: token-service
+  #   issuer: registry-token-issuer
+  #   rootcertbundle: /root/certs/bundle
+  # htpasswd:
+  #     realm: basic-realm
+  # path: /auth/htpasswd
 
   inmemory: # This driver takes no parameters
 
