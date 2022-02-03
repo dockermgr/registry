@@ -146,10 +146,10 @@ else
     --privileged \
     --restart=unless-stopped \
     --hostname "$SERVER_HOST" \
+    -v "$SERVER_SSLDIR":/certs \
     -v "$DATADIR/config":/config \
     -v "$DATADIR/data":/var/lib/registry \
     -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
-    -v /etc/ssl/CA/CasjaysDev:/certs \
     -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/certs/localhost.crt" \
     -e REGISTRY_HTTP_TLS_KEY="/certs/private/localhost.key" \
     -e REGISTRY_HTTP_SECRET=registrysecret \
