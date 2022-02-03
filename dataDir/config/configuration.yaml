@@ -2,12 +2,12 @@
 version: 0.1
 log:
   accesslog:
-    disabled: true
+    disabled: false
   level: debug
   formatter: text
   fields:
     service: registry
-    environment: staging
+    # environment: staging
   # hooks:
   #   - type: mail
   #     disabled: true
@@ -22,7 +22,7 @@ log:
   #       from: sender@example.com
   #       to:
   #         - errors@example.com
-
+################
 storage:
   filesystem:
     rootdirectory: /var/lib/registry
@@ -100,7 +100,7 @@ storage:
       dryrun: false
     readonly:
       enabled: false
-
+################
 http:
   #addr: localhost:5000
   #prefix: /my/nested/registry/
@@ -115,7 +115,7 @@ http:
     #   - /path/to/ca.pem
     #   - /path/to/another/ca.pem
     # letsencrypt:
-    #   cachefile: /path/to/cache-file
+    #   cachefile: /certs/cache
     #   email: emailused@letsencrypt.com
     #   hosts: [myregistryaddress.org]
   debug:
@@ -127,9 +127,9 @@ http:
     X-Content-Type-Options: [nosniff]
   http2:
     disabled: false
-
+################
 auth:
-  # none:
+  none:
   # silly:
   #   realm: silly-realm
   #   service: silly-service
@@ -142,10 +142,10 @@ auth:
   # htpasswd:
   #     realm: basic-realm
   # path: /auth/htpasswd
-
+################
 # middleware:
 #   registry:
-
+################
 # reporting:
 #   bugsnag:
 # apikey: bugsnagapikey
@@ -174,7 +174,7 @@ auth:
 #           - application/octet-stream
 #         actions:
 #           - pull
-
+################
 # redis:
 #   addr: localhost:6379
 #   password: asecret
@@ -186,7 +186,7 @@ auth:
 #     maxidle: 16
 #     maxactive: 64
 #     idletimeout: 300s
-
+################
 health:
   storagedriver:
     enabled: true
@@ -195,7 +195,6 @@ health:
   file:
     - file: /etc/docker/registry/config.yml
       interval: 10s
-
   # http:
   #   - uri: http://server.to.check/must/return/200
   #     headers:
@@ -204,27 +203,26 @@ health:
   #     timeout: 3s
   #     interval: 10s
   #     threshold: 3
-
   # tcp:
   #   - addr: redis-server.domain.com:6379
   #     timeout: 3s
   #     interval: 10s
   #     threshold: 3
-
+################
 # proxy:
 #   remoteurl: https://registry-1.docker.io
 #   username: [username]
 #   password: [password]
-
+################
 compatibility:
   schema1:
     # signingkeyfile: /etc/registry/key.json
     enabled: true
-
-validation:
-  manifests:
-    urls:
-      # allow:
-      #   - ^https?://([^/]+\.)*example\.com/
-      # deny:
-      #   - ^https?://www\.example\.com/
+################
+# validation:
+#   manifests:
+#     urls:
+# allow:
+#   - ^https?://([^/]+\.)*example\.com/
+# deny:
+#   - ^https?://www\.example\.com/
