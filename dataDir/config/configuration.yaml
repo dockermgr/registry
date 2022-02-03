@@ -91,7 +91,7 @@ storage:
   redirect:
     disable: false
   cache:
-    blobdescriptor: redis
+    # blobdescriptor: redis
   maintenance:
     uploadpurging:
       enabled: true
@@ -119,10 +119,10 @@ http:
     #   email: emailused@letsencrypt.com
     #   hosts: [myregistryaddress.org]
   debug:
-    #   addr: localhost:5001
-    #   prometheus:
-    enabled: true
-  #     path: /metrics
+    addr: localhost:5001
+    prometheus:
+      enabled: true
+    path: /metrics
   headers:
     X-Content-Type-Options: [nosniff]
   http2:
@@ -143,8 +143,8 @@ auth:
   #     realm: basic-realm
   # path: /auth/htpasswd
 
-middleware:
-  registry:
+# middleware:
+#   registry:
 
 # reporting:
 #   bugsnag:
@@ -218,7 +218,7 @@ health:
 
 compatibility:
   schema1:
-    signingkeyfile: /etc/registry/key.json
+    # signingkeyfile: /etc/registry/key.json
     enabled: true
 
 validation:
