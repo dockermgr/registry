@@ -149,14 +149,15 @@ else
     -v "$DATADIR/config":/config \
     -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
-    -v /etc/ssl/CA/CasjaysDev:/certs \
+    -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
+    -v /etc/ssl/CA/CasjaysDev:/etc/ssl/tls \
     -e TZ="$SERVER_TIMEZONE" \
     -e SEARCH_BACKEND="sqlalchemy" \
     -e REGISTRY_AUTH="htpasswd" \
     -e REGISTRY_AUTH_HTPASSWD_REALM="Registry" \
     -e REGISTRY_AUTH_HTPASSWD_PATH="/auth/htpasswd" \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/certs/localhost.crt" \
-    -e REGISTRY_HTTP_TLS_KEY="/certs/private/localhost.key" \
+    -e REGISTRY_HTTP_TLS_CERTIFICATE="/etc/ssl/tls/certs/localhost.crt" \
+    -e REGISTRY_HTTP_TLS_KEY="/etc/ssl/tls/private/localhost.key" \
     -p $SERVER_LISTEN:$SERVER_PORT:$SERVER_PORT_INT \
     "$HUB_URL" &>/dev/null
 fi
