@@ -149,6 +149,7 @@ else
     -v "$DATADIR/config":/config \
     -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
+    -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
     -v /etc/ssl/CA/CasjaysDev:/etc/ssl/tls \
     -e REGISTRY_HTTP_SECRET=registrysecret \
     -e TZ="$SERVER_TIMEZONE" \
@@ -157,7 +158,6 @@ else
     -p 127.0.0.1:$SERVER_PORT_OTHER:$SERVER_PORT_OTHER_INT \
     "$HUB_URL" &>/dev/null
 fi
-#    -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
 if [[ ! -f "/etc/nginx/vhosts.d/$APPNAME.conf" ]] && [[ -f "$INSTDIR/nginx/proxy.conf" ]]; then
