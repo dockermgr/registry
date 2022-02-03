@@ -1,108 +1,17 @@
 #https://docs.docker.com/registry/configuration/
 version: 0.1
 log:
-  accesslog:
-    disabled: false
-  level: debug
-  formatter: text
   fields:
     service: registry
-    # environment: staging
-  # hooks:
-  #   - type: mail
-  #     disabled: true
-  #     levels:
-  #       - panic
-  #     options:
-  #       smtp:
-  #         addr: mail.example.com:25
-  #         username: mailuser
-  #         password: password
-  #         insecure: true
-  #       from: sender@example.com
-  #       to:
-  #         - errors@example.com
 ################
 storage:
+  cache:
+    blobdescriptor: inmemory
   filesystem:
     rootdirectory: /var/lib/registry
-    maxthreads: 100
-  # azure:
-  #   accountname: accountname
-  #   accountkey: base64encodedaccountkey
-  #   container: containername
-  # gcs:
-  #   bucket: bucketname
-  #   keyfile: /path/to/keyfile
-  #   credentials:
-  #     type: service_account
-  #     project_id: project_id_string
-  #     private_key_id: private_key_id_string
-  #     private_key: private_key_string
-  #     client_email: client@example.com
-  #     client_id: client_id_string
-  #     auth_uri: http://example.com/auth_uri
-  #     token_uri: http://example.com/token_uri
-  #     auth_provider_x509_cert_url: http://example.com/provider_cert_url
-  #     client_x509_cert_url: http://example.com/client_cert_url
-  #   rootdirectory: /gcs/object/name/prefix
-  #   chunksize: 5242880
-  # s3:
-  #   accesskey: awsaccesskey
-  #   secretkey: awssecretkey
-  #   region: us-west-1
-  #   regionendpoint: http://myobjects.local
-  #   bucket: bucketname
-  #   encrypt: true
-  #   keyid: mykeyid
-  #   secure: true
-  #   v4auth: true
-  #   chunksize: 5242880
-  #   multipartcopychunksize: 33554432
-  #   multipartcopymaxconcurrency: 100
-  #   multipartcopythresholdsize: 33554432
-  #   rootdirectory: /s3/object/name/prefix
-  # swift:
-  #   username: username
-  #   password: password
-  #   authurl: https://storage.myprovider.com/auth/v1.0 or https://storage.myprovider.com/v2.0 or https://storage.myprovider.com/v3/auth
-  #   tenant: tenantname
-  #   tenantid: tenantid
-  #   domain: domain name for Openstack Identity v3 API
-  #   domainid: domain id for Openstack Identity v3 API
-  #   insecureskipverify: true
-  #   region: fr
-  #   container: containername
-  #   rootdirectory: /swift/object/name/prefix
-  # oss:
-  #   accesskeyid: accesskeyid
-  #   accesskeysecret: accesskeysecret
-  #   region: OSS region name
-  #   endpoint: optional endpoints
-  #   internal: optional internal endpoint
-  #   bucket: OSS bucket
-  #   encrypt: optional data encryption setting
-  #   secure: optional ssl setting
-  #   chunksize: optional size valye
-  #   rootdirectory: optional root directory
-  # inmemory: # This driver takes no parameters
-  delete:
-    enabled: false
-  redirect:
-    disable: false
-  cache:
-    # blobdescriptor: redis
-  maintenance:
-    uploadpurging:
-      enabled: true
-      age: 168h
-      interval: 24h
-      dryrun: false
-    readonly:
-      enabled: false
 ################
 http:
-  #addr: localhost:5000
+  addr: :5000
   #prefix: /my/nested/registry/
   #host: https://myregistryaddress.org:5000
   #secret: asecretforlocaldevelopment
@@ -111,15 +20,12 @@ http:
   tls:
     certificate: /etc/ssl/tls/certs/localhost.crt
     key: /etc/ssl/tls/private/localhost.key
-    # clientcas:
-    #   - /path/to/ca.pem
-    #   - /path/to/another/ca.pem
     # letsencrypt:
-    #   cachefile: /certs/cache
+    #   cachefile: /config/certs/cache
     #   email: emailused@letsencrypt.com
     #   hosts: [myregistryaddress.org]
   debug:
-    addr: localhost:5001
+    addr: :5001
     prometheus:
       enabled: true
     path: /metrics
