@@ -15,15 +15,15 @@ http:
   #prefix: /my/nested/registry/
   #host: https://myregistryaddress.org:5000
   #secret: asecretforlocaldevelopment
-  relativeurls: false
-  draintimeout: 60s
-  tls:
-    certificate: /etc/ssl/tls/certs/localhost.crt
-    key: /etc/ssl/tls/private/localhost.key
-    # letsencrypt:
-    #   cachefile: /config/certs/cache
-    #   email: emailused@letsencrypt.com
-    #   hosts: [myregistryaddress.org]
+  #relativeurls: false
+  #draintimeout: 60s
+  # tls:
+  #   certificate: /certs/certs/localhost.crt
+  #   key: /certs/private/localhost.key
+  # letsencrypt:
+  #   cachefile: /config/certs/cache
+  #   email: emailused@letsencrypt.com
+  #   hosts: [myregistryaddress.org]
   debug:
     addr: :5001
     prometheus:
@@ -47,7 +47,7 @@ auth:
   #   rootcertbundle: /root/certs/bundle
   # htpasswd:
   #     realm: basic-realm
-  # path: /auth/htpasswd
+  #     path: /config/auth/htpasswd
 ################
 # middleware:
 #   registry:
