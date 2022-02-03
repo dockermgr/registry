@@ -148,10 +148,9 @@ else
     --hostname "$SERVER_HOST" \
     -v "$SERVER_SSLDIR":/certs \
     -v "$DATADIR/config":/config \
+    -v "$DATADIR/config/auth":/auth \
     -v "$DATADIR/data":/var/lib/registry \
     -v "$DATADIR/config/configuration.yaml":/etc/docker/registry/config.yml \
-    -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/certs/localhost.crt" \
-    -e REGISTRY_HTTP_TLS_KEY="/certs/private/localhost.key" \
     -e REGISTRY_HTTP_SECRET=registrysecret \
     -e TZ="$SERVER_TIMEZONE" \
     -e SEARCH_BACKEND="sqlalchemy" \
