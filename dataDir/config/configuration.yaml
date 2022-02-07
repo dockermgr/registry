@@ -5,6 +5,8 @@ log:
     service: registry
 ################
 storage:
+  delete:
+    enabled: true
   cache:
     blobdescriptor: inmemory
   filesystem:
@@ -24,13 +26,19 @@ http:
   #   cachefile: /config/certs/cache
   #   email: emailused@letsencrypt.com
   #   hosts: [myregistryaddress.org]
+  headers:
+    X-Content-Type-Options: [nosniff]
+    Access-Control-Max-Age: [1728000]
+    Access-Control-Allow-Origin: ['*']
+    Access-Control-Allow-Credentials: [true]
+    Access-Control-Allow-Headers: ['Authorization', 'Accept']
+    Access-Control-Expose-Headers: ['Docker-Content-Digest']
+    Access-Control-Allow-Methods: ['HEAD', 'GET', 'OPTIONS', 'DELETE']
   debug:
     addr: :5001
     prometheus:
       enabled: true
     path: /metrics
-  headers:
-    X-Content-Type-Options: [nosniff]
   http2:
     disabled: false
 ################
