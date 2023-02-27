@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302271211-git
+##@Version           :  202302271235-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 12:11 EST
+# @@Created          :  Monday, Feb 27, 2023 12:35 EST
 # @@File             :  install.sh
 # @@Description      :  docker installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302271211-git"
+VERSION="202302271235-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -364,7 +364,6 @@ mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # rewrite variables
 [ -n "$HOST_LOCAL_ONLY" ] || HOST_LOCAL_ONLY="no"
-[ "$DEFINE_LISTEN" = "public" ] && DEFINE_LISTEN="0.0.0.0"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SERVER_SHORT_DOMAIN="$(hostname -s 2>/dev/null | grep '^')"
 SERVER_FULL_DOMAIN="$(hostname -d 2>/dev/null | grep '^' || echo 'home')"
@@ -394,11 +393,11 @@ SET_USER_NAME="${CONTAINER_USER_NAME:-$REGISTRY_USERNAME}"
 SET_USER_PASS="${CONTAINER_USER_PASS:-$REGISTRY_PASSWORD}"
 CONTAINER_DOMAINNAME="${CONTAINER_DOMAINNAME:-$APPNAME.$SERVER_SHORT_DOMAIN.$SERVER_FULL_DOMAIN}"
 echo "$CONTAINER_HOSTNAME" | grep -Fq '.' || CONTAINER_HOSTNAME="$APPNAME.$SERVER_SHORT_DOMAIN.$SERVER_FULL_DOMAIN"
+[[ "$CONTAINER_DOMAINNAME" = server.* ]] && CONTAINER_HOSTNAME="$APPNAME.$SERVER_FULL_DOMAIN" || CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$CONTAINER_DOMAINNAME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Configure variables
 [ -n "$CONTAINER_NAME" ] || CONTAINER_NAME="$(__name)"
 [ "$HOST_LOCAL_ONLY" = "yes" ] && CONTAINER_PRIVATE="yes"
-[ "$HOST_LOCAL_ONLY" = "local" ] && DEFINE_LISTEN="127.0.0.1"
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
 [ "$CGROUP_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$CGROUP_MOUNTS "
 [ "$SET_USER_PASS" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
@@ -406,12 +405,12 @@ echo "$CONTAINER_HOSTNAME" | grep -Fq '.' || CONTAINER_HOSTNAME="$APPNAME.$SERVE
 [ "$DOCKER_SOCKET_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS+="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock "
 [ "$DOCKER_CONFIG_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$DOCKER_CONFIG_MOUNT:$DOCKER_CONFIG_TO_MOUNT:ro "
 [ "$HOST_LOCAL_ONLY" = "yes" ] && DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" || HOST_LOCAL_ONLY=""
+[ "$HOST_LOCAL_ONLY" = "local" ] && DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" || HOST_LOCAL_ONLY=""
 [ "$HOST_LOCAL_ONLY" = "public" ] && DEFINE_LISTEN="0.0.0.0" && HOST_LISTEN_ADDR="$(__local_lan_ip)" || HOST_LOCAL_ONLY=""
 [ "$HOST_LOCAL_ONLY" = "lan" ] && DEFINE_LISTEN="$(__local_lan_ip)" && HOST_LISTEN_ADDR="$(__local_lan_ip)" || HOST_LOCAL_ONLY=""
 [ "$HOST_LOCAL_ONLY" = "docker" ] && DEFINE_LISTEN="$(__docker_gateway_ip)" && HOST_LISTEN_ADDR="$(__docker_gateway_ip)" || HOST_LOCAL_ONLY=""
 [ "$HOST_RESOLVE_MOUNT" = "yes" ] && ADDITIONAL_MOUNTS+="$HOST_RESOLVE_MOUNT:/etc/resolv.conf " || HOST_RESOLVE_MOUNT=""
 [ "$NGINX_SSL" = "yes" ] && [ -n "$NGINX_HTTPS" ] && NGINX_PORT="${NGINX_HTTPS:-443}" && NGINX_LISTEN_OPTS="ssl http2" || NGINX_PORT="${NGINX_HTTP:-80}"
-[[ "$CONTAINER_DOMAINNAME" = server.* ]] && CONTAINER_HOSTNAME="$APPNAME.$SERVER_FULL_DOMAIN" || CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$CONTAINER_DOMAINNAME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # rewrite variables
 [ -n "$HUB_IMAGE_TAG" ] || HUB_IMAGE_TAG="latest"
@@ -678,35 +677,35 @@ ENV_PORTS="${ENV_PORTS//--publish/}"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d --name=$CONTAINER_NAME $SET_LABELS $SET_LINK --shm-size=$CONTAINER_SHM_SIZE $DOCKER_OPTS $SET_CAP $SET_SYSCTL --hostname $CONTAINER_HOSTNAME --env TZ=$HOST_TIMEZONE --env ENV_PORTS=\"$ENV_PORTS\" --env TIMEZONE=$HOST_TIMEZONE $SET_ENV $SET_DEV $SET_MNT $SET_PORT $CUSTOM_ARGUMENTS $HOST_NETWORK_TYPE $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="${EXECUTE_DOCKER_CMD//  / }"
-# if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
-#   printf_yellow "Installing containers using docker-compose"
-#   sed -i 's|REPLACE_DATADIR|'$DATADIR'' "$INSTDIR/docker-compose.yml"
-#   if cd "$INSTDIR"; then
-#     EXECUTE_DOCKER_CMD=""
-#     __sudo docker-compose pull &>/dev/null
-#     __sudo docker-compose up -d &>/dev/null
-#   fi
-# elif [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ]; then
-#   EXECUTE_DOCKER_SCRIPT="$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
-# else
-#   EXECUTE_DOCKER_ENABLE="yes"
-#   EXECUTE_DOCKER_SCRIPT="$EXECUTE_DOCKER_CMD"
-# fi
-# if [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
-#   printf_cyan "Updating the image from $HUB_IMAGE_URL with tag $HUB_IMAGE_TAG"
-#   __sudo "$EXECUTE_PRE_INSTALL" &>/dev/null
-#   __sudo docker pull "$HUB_IMAGE_URL" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"
-#   printf_cyan "Creating container $CONTAINER_NAME"
-#   if [ "$EXECUTE_DOCKER_ENABLE" = "yes" ]; then
-printf '#!/usr/bin/env bash\n\n%s\n%s\n\n' "$EXECUTE_PRE_INSTALL" "$EXECUTE_DOCKER_CMD" >"$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
-[ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ] && chmod -Rf 755 "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
-#   fi
-#   if __sudo "$EXECUTE_DOCKER_SCRIPT" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
-#     rm -Rf "${TMP:-/tmp}/$APPNAME.err.log"
-#   else
-#     ERROR_LOG="true"
-#   fi
-# fi
+if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
+  printf_yellow "Installing containers using docker-compose"
+  sed -i 's|REPLACE_DATADIR|'$DATADIR'' "$INSTDIR/docker-compose.yml"
+  if cd "$INSTDIR"; then
+    EXECUTE_DOCKER_CMD=""
+    __sudo docker-compose pull &>/dev/null
+    __sudo docker-compose up -d &>/dev/null
+  fi
+elif [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ]; then
+  EXECUTE_DOCKER_SCRIPT="$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
+else
+  EXECUTE_DOCKER_ENABLE="yes"
+  EXECUTE_DOCKER_SCRIPT="$EXECUTE_DOCKER_CMD"
+fi
+if [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
+  printf_cyan "Updating the image from $HUB_IMAGE_URL with tag $HUB_IMAGE_TAG"
+  __sudo "$EXECUTE_PRE_INSTALL" &>/dev/null
+  __sudo docker pull "$HUB_IMAGE_URL" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"
+  printf_cyan "Creating container $CONTAINER_NAME"
+  if [ "$EXECUTE_DOCKER_ENABLE" = "yes" ]; then
+    printf '#!/usr/bin/env bash\n\n%s\n%s\n\n' "$EXECUTE_PRE_INSTALL" "$EXECUTE_DOCKER_CMD" >"$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
+    [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ] && chmod -Rf 755 "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
+  fi
+  if __sudo "$EXECUTE_DOCKER_SCRIPT" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
+    rm -Rf "${TMP:-/tmp}/$APPNAME.err.log"
+  else
+    ERROR_LOG="true"
+  fi
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
 set -x
