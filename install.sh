@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302271309-git
+##@Version           :  202302271516-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 13:09 EST
+# @@Created          :  Monday, Feb 27, 2023 15:16 EST
 # @@File             :  install.sh
 # @@Description      :  docker installer script for registry
 # @@Changelog        :  New script
 # @@TODO             :  Better documentation # Wakeup and Refactor code/optimize
-# @@Other            :  
-# @@Resource         :  
+# @@Other            :
+# @@Resource         :
 # @@Terminal App     :  no
 # @@sudo/root        :  no
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302271309-git"
+VERSION="202302271516-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -400,6 +400,7 @@ echo "$CONTAINER_HOSTNAME" | grep -Fq '.' || CONTAINER_HOSTNAME="$APPNAME.$SERVE
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
 [ "$CGROUP_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$CGROUP_MOUNTS "
 [ "$SET_USER_PASS" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
+[ -n "$CONTAINER_HOSTNAME" ] && SET_CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-}"
 [ "$HOST_ETC_HOSTS_FILE" = "yes" ] && ADDITIONAL_MOUNTS+="/etc/hosts:/usr/local/etc/hosts:ro "
 [ "$DOCKER_SOCKET_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS+="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock "
 [ "$DOCKER_CONFIG_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$DOCKER_CONFIG_MOUNT:$DOCKER_CONFIG_TO_MOUNT:ro "
@@ -510,7 +511,7 @@ if [ "$WEB_SERVER" = "yes" ]; then
   CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
   PRETTY_PORT="$CLEANUP_PORT"
   NGINX_PROXY_PORT="$PRETTY_PORT"
-  CONTAINER_HOSTNAME="$HOST_LISTEN_ADDR"
+  SET_CONTAINER_HOSTNAME="$HOST_LISTEN_ADDR"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SET_LINK=""
@@ -603,8 +604,8 @@ for port in $SET_SERVER_PORTS; do
   if [ "$port" != " " ] && [ -n "$port" ]; then
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
-      HOST_LISTEN_ADDR="$CONTAINER_LISTEN"
-      SET_PORT+="--publish $CONTAINER_LISTEN:$port "
+      ADDR="$CONTAINER_LISTEN"
+      SET_PORT+="--publish $ADDR:$port "
     elif [ -n "$SET_LISTEN" ]; then
       SET_PORT+="--publish $SET_LISTEN$port "
     else
@@ -669,13 +670,13 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-CONTAINER_HOSTNAME="${HOST_LISTEN_ADDR//:*/}"
+SET_CONTAINER_HOSTNAME="${HOST_LISTEN_ADDR//:*/}"
 ENV_PORTS+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}')"
 ENV_PORTS+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}')"
 ENV_PORTS="$(echo "$ENV_PORTS" | tr ' ' '\n' | sort -u | grep '^')"
 ENV_PORTS="${ENV_PORTS//--publish/}"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
-EXECUTE_DOCKER_CMD="docker run -d --name=$CONTAINER_NAME $SET_LABELS $SET_LINK --shm-size=$CONTAINER_SHM_SIZE $DOCKER_OPTS $SET_CAP $SET_SYSCTL --hostname $CONTAINER_HOSTNAME --env TZ=$HOST_TIMEZONE --env ENV_PORTS=\"$ENV_PORTS\" --env TIMEZONE=$HOST_TIMEZONE $SET_ENV $SET_DEV $SET_MNT $SET_PORT $CUSTOM_ARGUMENTS $HOST_NETWORK_TYPE $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+EXECUTE_DOCKER_CMD="docker run -d --name=$CONTAINER_NAME $SET_LABELS $SET_LINK --shm-size=$CONTAINER_SHM_SIZE $DOCKER_OPTS $SET_CAP $SET_SYSCTL --hostname $SET_CONTAINER_HOSTNAME --env TZ=$HOST_TIMEZONE --env ENV_PORTS=\"$ENV_PORTS\" --env TIMEZONE=$HOST_TIMEZONE $SET_ENV $SET_DEV $SET_MNT $SET_PORT $CUSTOM_ARGUMENTS $HOST_NETWORK_TYPE $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="${EXECUTE_DOCKER_CMD//  / }"
 if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
   printf_yellow "Installing containers using docker-compose"
@@ -712,24 +713,24 @@ set -x
 [ ! -f "$INSTDIR/nginx/proxy.conf" ] && NGINX_UPDATE_CONF="yes"
 if [ "$NGINX_PROXY" = "yes" ]; then
   if [ "$NGINX_UPDATE_CONF" = "yes" ] && [ -f "$INSTDIR/nginx/proxy.conf" ]; then
-    cp -f "$INSTDIR/nginx/proxy.conf" "/tmp/$$.$CONTAINER_HOSTNAME.conf"
-    sed -i "s|REPLACE_APPNAME|$APPNAME|g" "/tmp/$$.$CONTAINER_HOSTNAME.conf" &>/dev/null
-    sed -i "s|REPLACE_NGINX_PORT|$NGINX_PORT|g" "/tmp/$$.$CONTAINER_HOSTNAME.conf" &>/dev/null
-    sed -i "s|REPLACE_HOST_PROXY|$NGINX_PROXY_URL|g" "/tmp/$$.$CONTAINER_HOSTNAME.conf" &>/dev/null
-    sed -i "s|REPLACE_NGINX_HOST|$CONTAINER_HOSTNAME|g" "/tmp/$$.$CONTAINER_HOSTNAME.conf" &>/dev/null
-    sed -i "s|REPLACE_SERVER_LISTEN_OPTS|$NGINX_LISTEN_OPTS|g" "/tmp/$$.$CONTAINER_HOSTNAME.conf" &>/dev/null
+    cp -f "$INSTDIR/nginx/proxy.conf" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf"
+    sed -i "s|REPLACE_APPNAME|$APPNAME|g" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
+    sed -i "s|REPLACE_NGINX_PORT|$NGINX_PORT|g" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
+    sed -i "s|REPLACE_HOST_PROXY|$NGINX_PROXY_URL|g" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
+    sed -i "s|REPLACE_NGINX_HOST|$SET_CONTAINER_HOSTNAME|g" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
+    sed -i "s|REPLACE_SERVER_LISTEN_OPTS|$NGINX_LISTEN_OPTS|g" "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
     if [ -d "/etc/nginx/vhosts.d" ]; then
-      __sudo_root mv -f "/tmp/$$.$CONTAINER_HOSTNAME.conf" "/etc/nginx/vhosts.d/$CONTAINER_HOSTNAME.conf"
-      [ -f "/etc/nginx/vhosts.d/$CONTAINER_HOSTNAME.conf" ] && printf_green "[ ✅ ] Copying the nginx configuration"
+      __sudo_root mv -f "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" "/etc/nginx/vhosts.d/$SET_CONTAINER_HOSTNAME.conf"
+      [ -f "/etc/nginx/vhosts.d/$SET_CONTAINER_HOSTNAME.conf" ] && printf_green "[ ✅ ] Copying the nginx configuration"
       systemctl status nginx | grep -q enabled &>/dev/null && __sudo_root systemctl reload nginx &>/dev/null
     else
-      mv -f "/tmp/$$.$CONTAINER_HOSTNAME.conf" "$INSTDIR/nginx/$CONTAINER_HOSTNAME.conf" &>/dev/null
+      mv -f "/tmp/$$.$SET_CONTAINER_HOSTNAME.conf" "$INSTDIR/nginx/$SET_CONTAINER_HOSTNAME.conf" &>/dev/null
     fi
   else
     NGINX_PROXY_URL=""
   fi
-  SERVER_URL="$CONTAINER_HTTP_PROTO://$CONTAINER_HOSTNAME:$PRETTY_PORT"
-  [ -f "/etc/nginx/vhosts.d/$CONTAINER_HOSTNAME.conf" ] && NGINX_PROXY_URL="$CONTAINER_HTTP_PROTO://$CONTAINER_HOSTNAME"
+  SERVER_URL="$CONTAINER_HTTP_PROTO://$SET_CONTAINER_HOSTNAME:$PRETTY_PORT"
+  [ -f "/etc/nginx/vhosts.d/$SET_CONTAINER_HOSTNAME.conf" ] && NGINX_PROXY_URL="$CONTAINER_HTTP_PROTO://$SET_CONTAINER_HOSTNAME"
 fi
 set +x
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -737,13 +738,13 @@ set +x
 run_postinst() {
   dockermgr_run_post
   [ -w "/etc/hosts" ] || return 0
-  if ! grep -sq "$CONTAINER_HOSTNAME" "/etc/hosts"; then
+  if ! grep -sq "$SET_CONTAINER_HOSTNAME" "/etc/hosts"; then
     if [ -n "$PRETTY_PORT" ]; then
       if [ $(hostname -d 2>/dev/null | grep '^') = 'home' ]; then
         echo "$HOST_LISTEN_ADDR     $APPNAME.home" | sudo tee -a "/etc/hosts" &>/dev/null
       else
         echo "$HOST_LISTEN_ADDR     $APPNAME.home" | sudo tee -a "/etc/hosts" &>/dev/null
-        echo "$HOST_LISTEN_ADDR     $CONTAINER_HOSTNAME" | sudo tee -a "/etc/hosts" &>/dev/null
+        echo "$HOST_LISTEN_ADDR     $SET_CONTAINER_HOSTNAME" | sudo tee -a "/etc/hosts" &>/dev/null
       fi
     fi
   fi
