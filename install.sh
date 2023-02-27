@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302271528-git
+##@Version           :  202302271605-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 15:28 EST
+# @@Created          :  Monday, Feb 27, 2023 16:05 EST
 # @@File             :  install.sh
 # @@Description      :  docker installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302271528-git"
+VERSION="202302271605-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -112,8 +112,10 @@ RANDOM_PORT="$(__rport)"
 RANDOM_PASS="$(__password)"
 SET_HOSTNAME="$(__host_name)"
 SET_DOMAINNAME="$(__domain_name)"
-LOCAL_NET_DEV="$(ip route 2>/dev/null | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}' | grep '^' || echo 'eth0')"
-LOCAL_IP="$(ifconfig $LOCAL_NET_DEV 2>/dev/null | grep -w 'inet' | awk -F ' ' '{print $2}' | grep -vE '127\.[0-255]\.[0-255]\.[0-255]' | tr ' ' '\n' | grep '^')"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup networking
+SET_LOCAL_NET_DEV="$(__route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}' | grep '^' || echo 'eth0')"
+SET_LOCAL_IP="$(__ifconfig $LOCAL_NET_DEV | grep -w 'inet' | awk -F ' ' '{print $2}' | grep -vE '127\.[0-255]\.[0-255]\.[0-255]' | tr ' ' '\n' | grep '^')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Repository variables
 REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/registry"
@@ -366,8 +368,8 @@ mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 [ -n "$HOST_NETWORK_ADDR" ] || HOST_NETWORK_ADDR="no"
 [ "$HOST_NETWORK_ADDR" = "all" ] || HOST_NETWORK_ADDR="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SERVER_SHORT_DOMAIN="$(hostname -s 2>/dev/null | grep '^')"
-SERVER_FULL_DOMAIN="$(hostname -d 2>/dev/null | grep '^' || echo 'home')"
+SERVER_SHORT_DOMAIN="${SET_HOSTNAME:-$(hostname -s 2>/dev/null | grep '^')}"
+SERVER_FULL_DOMAIN="${SET_DOMAINNAME:-$(hostname -d 2>/dev/null | grep '^' || echo 'home')}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Variables - Do not change anything below this line
 ENV_PORTS=""
@@ -400,7 +402,7 @@ echo "$CONTAINER_HOSTNAME" | grep -Fq '.' || CONTAINER_HOSTNAME="$APPNAME.$SERVE
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
 [ "$CGROUP_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$CGROUP_MOUNTS "
 [ "$SET_USER_PASS" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
-[ -n "$CONTAINER_HOSTNAME" ] && SET_CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-}"
+[ -n "$CONTAINER_HOSTNAME" ] && SET_CONTAINER_HOSTNAME="$CONTAINER_HOSTNAME"
 [ "$HOST_ETC_HOSTS_FILE" = "yes" ] && ADDITIONAL_MOUNTS+="/etc/hosts:/usr/local/etc/hosts:ro "
 [ "$DOCKER_SOCKET_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS+="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock "
 [ "$DOCKER_CONFIG_ENABLED" = "yes" ] && ADDITIONAL_MOUNTS="$DOCKER_CONFIG_MOUNT:$DOCKER_CONFIG_TO_MOUNT:ro "
@@ -511,7 +513,6 @@ if [ "$WEB_SERVER" = "yes" ]; then
   CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
   PRETTY_PORT="$CLEANUP_PORT"
   NGINX_PROXY_PORT="$PRETTY_PORT"
-  SET_CONTAINER_HOSTNAME="$HOST_LISTEN_ADDR"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SET_LINK=""
