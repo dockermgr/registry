@@ -597,7 +597,7 @@ for port in $SET_SERVER_PORTS; do
       ADDR="127.0.0.2"
       DOCKER_SET_PUBLISH+="--publish $ADDR:$port "
     elif [ -n "$SET_LISTEN" ]; then
-      DOCKER_SET_PUBLISH+="--publish $SET_LISTEN$port "
+      DOCKER_SET_PUBLISH+="--publish $SET_LISTEN:$port "
     else
       DOCKER_SET_PUBLISH+="--publish $port "
     fi
