@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302280955-git
+##@Version           :  202302281002-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Tuesday, Feb 28, 2023 09:55 EST
+# @@Created          :  Tuesday, Feb 28, 2023 10:02 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302280955-git"
+VERSION="202302281002-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -232,29 +232,29 @@ CONTAINER_TTY_ENABLED="yes"
 CONTAINER_INTERACTIVE_ENABLED="no"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable cgroups [yes/no]
-CGROUPS_ENABLED="no"
+CGROUPS_ENABLED="yes"
 CGROUPS_MOUNTS="/sys/fs/cgroup:/sys/fs/cgroup:ro"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set location to resolv.conf [yes/no]
-HOST_RESOLVE_ENABLED="no"
+HOST_RESOLVE_ENABLED="yes"
 HOST_RESOLVE_FILE="/etc/resolv.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker socket [pathToSocket]
-DOCKER_SOCKET_ENABLED="no"
+DOCKER_SOCKET_ENABLED="yes"
 DOCKER_SOCKET_MOUNT="/var/run/docker.sock"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker config [~/.docker/config.json]
-DOCKER_CONFIG_ENABLED="no"
+DOCKER_CONFIG_ENABLED="yes"
 HOST_DOCKER_CONFIG="$HOME/.docker/config.json"
 CONTAINER_DOCKER_CONFIG_FILE="/root/.docker/config.json"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount soundcard [/dev/snd]
-DOCKER_SOUND_ENABLED="no"
+DOCKER_SOUND_ENABLED="yes"
 HOST_SOUND_CONFIG="/dev/snd"
 CONTAINER_SOUND_CONFIG_FILE="/dev/snd"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable display in container
-CONTAINER_X11_ENABLED="no"
+CONTAINER_X11_ENABLED="yes"
 HOST_X11_DISPLAY=""
 HOST_X11_SOCKET="/tmp/.X11-unix"
 HOST_X11_XAUTH="$HOME/.Xauthority"
@@ -286,10 +286,10 @@ HOST_NGINX_HTTPS_PORT="443"
 HOST_NGINX_UPDATE_CONF="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver [yes/no] [yes/no] [internalPort,otherPort]
-CONTAINER_WEB_SERVER_ENABLED="no"
+CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="80"
+CONTAINER_WEB_SERVER_PORT="5000"
 CONTAINER_WEB_SERVER_EMAIL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
@@ -297,13 +297,13 @@ CONTAINER_HTTP_PROTO="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or HOST_NETWORK_ADDR=local
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
-CONTAINER_HTTP_PORT="5000,"
+CONTAINER_HTTP_PORT=""
 CONTAINER_HTTPS_PORT=""
 CONTAINER_SERVICE_PORT=""
-CONTAINER_ADD_CUSTOM_PORT="81:5000/tcp,5000,"
+CONTAINER_ADD_CUSTOM_PORT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
-CONTAINER_ADD_CUSTOM_LISTEN="$SET_LAN_IP:80:5000/tcp,"
+CONTAINER_ADD_CUSTOM_LISTEN=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
 CONTAINER_LINK=""
