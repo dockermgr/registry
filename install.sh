@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302272209-git
+##@Version           :  202302272218-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 22:09 EST
+# @@Created          :  Monday, Feb 27, 2023 22:18 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302272209-git"
+VERSION="202302272218-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -269,7 +269,7 @@ HOST_NGINX_UPDATE_CONF="yes"
 CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000"
+CONTAINER_WEB_SERVER_PORT="5000,5001"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
@@ -602,7 +602,7 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   for port in $CONTAINER_WEB_SERVER_PORT; do
     if [ "$port" != " " ] && [ -n "$port" ]; then
       RANDOM_PORT="$(__rport)"
-      TYPE="$(echo "$port" | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
+      TYPE="$(echo "$port" | grep '/' | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
       if [ -z "$TYPE" ]; then
         DOCKER_SET_PUBLISH+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port "
       else
@@ -612,8 +612,8 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
     fi
   done
   [ "$CONTAINER_WEB_SERVER_SSL_ENABLED" = "yes" ] && CONTAINER_HTTP_PROTO="https" || CONTAINER_HTTP_PROTO="http"
-  [ -n "$SET_WEB_PORT" ] && SET_NGINX_PROXY_PORT="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v '^$' | awk -F':' '{print $1":"$2}' | sort -u | sed 's|--publish||g' | tr '\n' ' ' | head -n1 | grep '^')"
-  [ -n "$SET_WEB_PORT" ] && CLEANUP_PORT="$SET_NGINX_PROXY_PORT" CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
+  [ -n "$SET_WEB_PORT" ] && SET_NGINX_PROXY_PORT="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | awk -F':' '{print $1":"$2}' | grep -v '^$' | tr '\n' ' ' | head -n1 | grep '^')"
+  [ -n "$SET_WEB_PORT" ] && CLEANUP_PORT="${SET_NGINX_PROXY_PORT//--publish /}" CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
   [ -n "$SET_WEB_PORT" ] && PRETTY_PORT="$CLEANUP_PORT" NGINX_PROXY_PORT="$PRETTY_PORT"
   [ -n "$SET_NGINX_PROXY_PORT" ] && NGINX_PROXY_PORT="$SET_NGINX_PROXY_PORT"
 fi
