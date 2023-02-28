@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302281027-git
+##@Version           :  202302281035-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Tuesday, Feb 28, 2023 10:27 EST
+# @@Created          :  Tuesday, Feb 28, 2023 10:35 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302281027-git"
+VERSION="202302281035-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -286,10 +286,10 @@ HOST_NGINX_HTTPS_PORT="443"
 HOST_NGINX_UPDATE_CONF="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver [yes/no] [yes/no] [internalPort,otherPort]
-CONTAINER_WEB_SERVER_ENABLED="no"
+CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="80"
+CONTAINER_WEB_SERVER_PORT="5000"
 CONTAINER_WEB_SERVER_EMAIL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
@@ -352,8 +352,26 @@ CONTAINER_DEBUG_OPTIONS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Show post install message
 POST_SHOW_FINISHED_MESSAGE=""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End of configuration options
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Ensure directories exist
+ensure_dirs
+ensure_perms
+chmod -Rf 777 "$APPDIR"
+mkdir -p "$LOCAL_DATA_DIR"
+mkdir -p "$LOCAL_CONFIG_DIR"
+mkdir -p "$DOCKERMGR_CONFIG_DIR/env"
+mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$DOCKERMGR_CONFIG_DIR/env/$APPNAME" ]; then
+  . "$DOCKERMGR_CONFIG_DIR/env/$APPNAME"
+else
+  cat <<EOF >"$DOCKERMGR_CONFIG_DIR/env/$APPNAME"
+# Enviroment variables for $APPNAME
+
+EOF
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$HUB_IMAGE_URL" ] || [ "$HUB_IMAGE_URL" = " " ]; then
   printf_exit "Please set the url to the containers image"
@@ -374,15 +392,6 @@ dockermgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run pre-install commands
 execute "run_pre_install" "Running pre-installation commands"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Ensure directories exist
-ensure_dirs
-ensure_perms
-chmod -Rf 777 "$APPDIR"
-mkdir -p "$LOCAL_DATA_DIR"
-mkdir -p "$LOCAL_CONFIG_DIR"
-mkdir -p "$DOCKERMGR_CONFIG_DIR/env"
-mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variable cleanup
 CONTAINER_ENV="${CONTAINER_ENV//  / }"
