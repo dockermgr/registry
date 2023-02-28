@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302280221-git
+##@Version           :  202302280521-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Tuesday, Feb 28, 2023 02:21 EST
+# @@Created          :  Tuesday, Feb 28, 2023 05:21 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
-# @@TODO             :  Better documentation # Wakeup and Refactor code/optimize
+# @@TODO             :  Better documentation
 # @@Other            :
 # @@Resource         :
 # @@Terminal App     :  no
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302280221-git"
+VERSION="202302280521-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -208,8 +208,8 @@ CONTAINER_NAME=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container user and group ID [yes/no] [id]
 USER_ID_ENABLED="yes"
-CONTAINER_USER_ID=""
-CONTAINER_GROUP_ID=""
+CONTAINER_USER_ID="1000"
+CONTAINER_GROUP_ID="1000"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable privileged container [ yes/no ]
 CONTAINER_PRIVILEGED_ENABLED="yes"
@@ -280,48 +280,48 @@ HOST_NGINX_UPDATE_CONF="yes"
 CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000 "
+CONTAINER_WEB_SERVER_PORT="5000"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or HOST_NETWORK_ADDR=local
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
-CONTAINER_HTTP_PORT=" "
-CONTAINER_HTTPS_PORT=" "
-CONTAINER_SERVICE_PORT="5001 "
-CONTAINER_ADD_CUSTOM_PORT="5002,5010 "
-CONTAINER_ADD_CUSTOM_PORT+="10000,10001 "
+CONTAINER_HTTP_PORT="12000,12001 "
+CONTAINER_HTTPS_PORT=""
+CONTAINER_SERVICE_PORT="3309,12002 "
+CONTAINER_ADD_CUSTOM_PORT="12000 "
+CONTAINER_ADD_CUSTOM_PORT+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
-CONTAINER_ADD_CUSTOM_LISTEN="$SET_LOCAL_IP:6002:10100,$SET_LOCAL_IP:6006:20000 "
+CONTAINER_ADD_CUSTOM_LISTEN="$SET_LOCAL_IP:1920:1999/tcp,$SET_LOCAL_IP:1920:1989,$SET_LOCAL_IP:1920 "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
-CONTAINER_LINK="tor"
+CONTAINER_LINK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional mounts [/dir:/dir,/otherdir:/otherdir]
-CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z "
-CONTAINER_MOUNTS+=" "
+CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z,"
+CONTAINER_MOUNTS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional devices [/dev:/dev,/otherdev:/otherdev]
 CONTAINER_DEVICES="/dev/snd"
-CONTAINER_DEVICES+=" "
+CONTAINER_DEVICES+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional variables [myvar=var,myothervar=othervar]
-CONTAINER_ENV="TEST=TRUE,IMAGE=alpine"
-CONTAINER_ENV+=" "
+CONTAINER_ENV=""
+CONTAINER_ENV+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set sysctl []
 CONTAINER_SYSCTL=""
-CONTAINER_SYSCTL+=" "
+CONTAINER_SYSCTL+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set capabilites [CAP,OTHERCAP]
 CONTAINER_CAPABILITIES="SYS_ADMIN,SYS_TIME "
-CONTAINER_CAPABILITIES+=" "
+CONTAINER_CAPABILITIES+=","
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels [traefik.enable=true,label=label,otherlabel=label2]
-CONTAINER_LABELS="traefik.enable=true"
-CONTAINER_LABELS+=" "
+CONTAINER_LABELS=""
+CONTAINER_LABELS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container username and password and the env name [CONTAINER_ENV_USER_NAME=CONTAINER_USER_NAME] - [password=pass]
 CONTAINER_ENV_USER_NAME=""
@@ -331,11 +331,11 @@ CONTAINER_USER_PASS="${REGISTRY_PASSWORD:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify container arguments - will run in container [/path/to/script]
 CONTAINER_COMMANDS=""
-CONTAINER_COMMANDS+=" "
+CONTAINER_COMMANDS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional docker arguments - see docker run --help [--option arg1,--option2]
 DOCKER_CUSTOM_ARGUMENTS=""
-DOCKER_CUSTOM_ARGUMENTS+=" "
+DOCKER_CUSTOM_ARGUMENTS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Show post install message
 POST_SHOW_FINISHED_MESSAGE=""
@@ -412,9 +412,9 @@ DOCKER_SET_TMP_PUBLISH=("")
 LOCAL_NET_IP="$(__local_lan_ip)"
 LOCAL_NET_IP="${LOCAL_NET_IP:-$SET_LOCAL_IP}"
 HOST_DEFINE_LISTEN="${HOST_DEFINE_LISTEN:-SET_LOCAL_IP}"
-[ "$HOST_NETWORK_ADDR" = "public" ] && HOST_DEFINE_LISTEN="0.0.0.0" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
-[ "$HOST_NETWORK_ADDR" = "lan" ] && HOST_DEFINE_LISTEN="$(__local_lan_ip)" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
-[ "$HOST_NETWORK_ADDR" = "docker" ] && HOST_DEFINE_LISTEN="$(__docker_gateway_ip)" && HOST_LISTEN_ADDR="$(__docker_gateway_ip)"
+[ "$HOST_NETWORK_ADDR" = "public" ] && HOST_DEFINE_LISTEN=0.0.0.0 && HOST_LISTEN_ADDR=$(__local_lan_ip)
+[ "$HOST_NETWORK_ADDR" = "lan" ] && HOST_DEFINE_LISTEN=$(__local_lan_ip) && HOST_LISTEN_ADDR=$(__local_lan_ip)
+[ "$HOST_NETWORK_ADDR" = "docker" ] && HOST_DEFINE_LISTEN=$(__docker_gateway_ip) && HOST_LISTEN_ADDR=$(__docker_gateway_ip)
 [ "$HOST_NETWORK_ADDR" = "yes" ] && CONTAINER_PRIVATE="yes" && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" && CONTAINER_PRIVATE="yes"
 [ "$HOST_NETWORK_ADDR" = "local" ] && CONTAINER_PRIVATE="yes" && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" && CONTAINER_PRIVATE="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -453,6 +453,7 @@ DOCKER_SET_OPTIONS="${DOCKER_CUSTOM_ARGUMENTS:-}"
 [ "$HOST_ETC_HOSTS_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="/etc/hosts:/etc/hosts:ro "
 [ "$HOST_RESOLVE_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_RESOLVE_FILE:/etc/resolv.conf "
 [ "$DOCKER_SOCKET_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock "
+[ "$DOCKER_SOUND_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_SOUND_CONFIG:$CONTAINER_SOUND_CONFIG_FILE "
 [ "$DOCKER_CONFIG_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_DOCKER_CONFIG:$CONTAINER_DOCKER_CONFIG_FILE:ro "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # env variables from env
@@ -519,6 +520,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_LINK=""
 CONTAINER_LINK="${CONTAINER_LINK//,/ }"
+CONTAINER_LINK="${CONTAINER_LINK//  / }"
 for link in $CONTAINER_LINK; do
   if [ "$link" != "" ] && [ "$link" != " " ]; then
     DOCKER_SET_LINK+="--link $link "
@@ -527,6 +529,7 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_LABELS=""
 CONTAINER_LABELS="${CONTAINER_LABELS//,/ }"
+CONTAINER_LABELS="${CONTAINER_LABELS//  / }"
 for label in $CONTAINER_LABELS; do
   if [ "$label" != "" ] && [ "$label" != " " ]; then
     DOCKER_SET_LABELS+="--label $label "
@@ -536,6 +539,7 @@ CONTAINER_LABELS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_CAP=""
 CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//,/ }"
+CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//  / }"
 for cap in $CONTAINER_CAPABILITIES; do
   if [ "$cap" != "" ] && [ "$cap" != " " ]; then
     DOCKER_SET_CAP+="--cap-add $cap "
@@ -543,7 +547,9 @@ for cap in $CONTAINER_CAPABILITIES; do
 done
 CONTAINER_CAPABILITIES=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_SYSCTL="" CONTAINER_SYSCTL="${CONTAINER_SYSCTL//,/ }"
+DOCKER_SET_SYSCTL=""
+CONTAINER_SYSCTL="${CONTAINER_SYSCTL//,/ }"
+CONTAINER_SYSCTL="${CONTAINER_SYSCTL//  / }"
 for sysctl in $CONTAINER_SYSCTL; do
   if [ "$sysctl" != "" ] && [ "$sysctl" != " " ]; then
     DOCKER_SET_SYSCTL+="--sysctl $sysctl "
@@ -551,7 +557,9 @@ for sysctl in $CONTAINER_SYSCTL; do
 done
 CONTAINER_SYSCTL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_ENV1="" CONTAINER_OPT_ENV_VAR="${SET_CONTAINER_OPT_ENV_VAR//,/ }"
+DOCKER_SET_ENV1=""
+CONTAINER_OPT_ENV_VAR="${SET_CONTAINER_OPT_ENV_VAR//,/ }"
+CONTAINER_OPT_ENV_VAR="${SET_CONTAINER_OPT_ENV_VAR//  / }"
 if [ -n "$OPT_ENV_VAR" ]; then
   for env in $OPT_ENV_VAR; do
     if [ "$env" != "" ] && [ "$env" != " " ]; then
@@ -561,7 +569,9 @@ if [ -n "$OPT_ENV_VAR" ]; then
 fi
 CONTAINER_OPT_ENV_VAR=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_ENV2="" CONTAINER_ENV="${ADDITION_ENV//,/ }"
+DOCKER_SET_ENV2=""
+CONTAINER_ENV="${ADDITION_ENV//,/ }"
+CONTAINER_ENV="${ADDITION_ENV//  / }"
 for env in $ADDITION_ENV; do
   if [ "$env" != "" ] && [ "$env" != " " ]; then
     DOCKER_SET_ENV2+="--env $env "
@@ -570,7 +580,9 @@ done
 CONTAINER_ENV=""
 DOCKER_SET_ENV="$DOCKER_SET_ENV1 $DOCKER_SET_ENV2"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_DEV="" CONTAINER_DEVICES="${CONTAINER_DEVICES//,/ }"
+DOCKER_SET_DEV=""
+CONTAINER_DEVICES="${CONTAINER_DEVICES//,/ }"
+CONTAINER_DEVICES="${CONTAINER_DEVICES//  / }"
 for dev in $CONTAINER_DEVICES; do
   if [ "$dev" != "" ] && [ "$dev" != " " ]; then
     echo "$dev" | grep -q ':' || dev="$dev:$dev"
@@ -579,7 +591,9 @@ for dev in $CONTAINER_DEVICES; do
 done
 CONTAINER_DEVICES=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_MNT="" CONTAINER_MOUNTS="${CONTAINER_MOUNTS//,/ }"
+DOCKER_SET_MNT=""
+CONTAINER_MOUNTS="${CONTAINER_MOUNTS//,/ }"
+CONTAINER_MOUNTS="${CONTAINER_MOUNTS//  / }"
 for mnt in $CONTAINER_MOUNTS; do
   if [ "$mnt" != "" ] && [ "$mnt" != " " ]; then
     echo "$mnt" | grep -q ':' || port="$mnt:$mnt"
@@ -589,6 +603,7 @@ done
 CONTAINER_MOUNTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//,/ }"
+CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//  / }"
 SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
 if [ -n "$CONTAINER_OPT_PORT_VAR" ]; then
   for set_port in $CONTAINER_OPT_PORT_VAR; do
@@ -623,6 +638,7 @@ for set_port in $SET_SERVER_PORTS; do
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//,/ }"
+CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//  / }"
 if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
   for set_port in $CONTAINER_ADD_CUSTOM_LISTEN; do
     port=$set_port
@@ -634,10 +650,11 @@ if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # container web server configuration
+SET_WEB_PORT=""
 if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
-  SET_WEB_PORT=""
   CONTAINER_WEB_SERVER_IP=$HOST_NETWORK_LOCAL_ADDR
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
+  CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//  / }"
   for set_port in $CONTAINER_WEB_SERVER_PORT; do
     if [ "$set_port" != " " ] && [ -n "$set_port" ]; then
       port=$set_port
