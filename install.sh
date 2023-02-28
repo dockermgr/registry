@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302272337-git
+##@Version           :  202302280130-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
-# @@License          :  LICENSE.md
+# @@License          :  WTFPL
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 23:37 EST
+# @@Created          :  Tuesday, Feb 28, 2023 01:30 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302272337-git"
+VERSION="202302280130-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -83,6 +83,13 @@ __rport() {
   echo "$port" | head -n1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__trim() {
+  local var="$*"
+  var="${var#"${var%%[![:space:]]*}"}" # remove leading whitespace characters
+  var="${var%"${var##*[![:space:]]}"}" # remove trailing whitespace characters
+  printf '%s' "$var"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define any pre-install scripts
 run_pre_install() {
   true
@@ -115,10 +122,10 @@ APPVERSION="$(__appversion "$REPO/raw/${GIT_REPO_BRANCH:-main}/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults variables
 APPNAME="registry"
-APPDIR="$HOME/.local/share/srv/docker/registry"
-DATADIR="$HOME/.local/share/srv/docker/registry/rootfs"
-INSTDIR="$HOME/.local/share/CasjaysDev/dockermgr/registry"
-DOCKERMGR_CONFIG_DIR="${DOCKERMGR_CONFIG_DIR:-$HOME/.config/myscripts/dockermgr}"
+export APPDIR="$HOME/.local/share/srv/docker/registry"
+export DATADIR="$HOME/.local/share/srv/docker/registry/rootfs"
+export INSTDIR="$HOME/.local/share/CasjaysDev/dockermgr/registry"
+export DOCKERMGR_CONFIG_DIR="${DOCKERMGR_CONFIG_DIR:-$HOME/.config/myscripts/dockermgr}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
 dockermgr_install
@@ -161,6 +168,9 @@ SET_RANDOM_PORT="$(__rport)"
 SET_RANDOM_PASS="$(__password)"
 SET_LOCAL_HOSTNAME="$(__host_name)"
 SET_LOCAL_DOMAINNAME="$(__domain_name)"
+SET_LONG_HOSTNAME=""$(hostname -f 2>/dev/null | grep '^')
+SET_SHORT_HOSTNAME="$(hostname -s 2>/dev/null | grep '^')"
+SET_DOMAIN_NAME="$(hostname -d 2>/dev/null | grep '^' || echo 'home')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define folders
 HOST_DATA_DIR="$DATADIR/data"
@@ -372,8 +382,17 @@ DOCKER_CUSTOM_ARGUMENTS="${DOCKER_CUSTOM_ARGUMENTS//  / }"
 CONTAINER_ADD_CUSTOM_PORT="${CONTAINER_ADD_CUSTOM_PORT//  / }"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set hostname and domain
-HOST_SHORT_HOST="${SET_LOCAL_HOSTNAME:-$(hostname -s 2>/dev/null | grep '^')}"
-HOST_FULL_DOMAIN="${SET_LOCAL_DOMAINNAME:-$(hostname -d 2>/dev/null | grep '^' || echo 'home')}"
+HOST_SHORT_HOST="${SET_LOCAL_HOSTNAME:-$SET_SHORT_HOSTNAME}"
+HOST_FULL_HOST="${SET_LOCAL_HOSTNAME:-$SET_LONG_HOSTNAME}"
+HOST_FULL_DOMAIN="${SET_LOCAL_DOMAINNAME:-$SET_DOMAIN_NAME}"
+if [[ "$HOST_FULL_HOST" = server.* ]]; then
+  HOST_FULL_DOMAIN="$SET_LOCAL_DOMAINNAME"
+  CONTAINER_DOMAINNAME="$SET_LOCAL_DOMAINNAME"
+  CONTAINER_HOSTNAME="$APPNAME.$HOST_FULL_DOMAIN"
+else
+  CONTAINER_DOMAINNAME="${CONTAINER_DOMAINNAME:-$HOST_FULL_DOMAIN}"
+  CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$HOST_FULL_HOST}"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Redfine variables
 DOCKER_SET_PUBLISH=""
@@ -385,9 +404,6 @@ DOCKER_SET_PUBLISH=""
 LOCAL_NET_IP="$(__local_lan_ip)"
 LOCAL_NET_IP="${LOCAL_NET_IP:-$SET_LOCAL_IP}"
 HOST_DEFINE_LISTEN="${HOST_DEFINE_LISTEN:-SET_LOCAL_IP}"
-CONTAINER_DOMAINNAME="${CONTAINER_DOMAINNAME:-$SERVER_FULL_DOMAIN}"
-CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$CONTAINER_DOMAINNAME}"
-[[ "$CONTAINER_HOSTNAME" = server.* ]] && CONTAINER_HOSTNAME="$APPNAME.$SERVER_FULL_DOMAIN"
 [ "$HOST_NETWORK_ADDR" = "public" ] && HOST_DEFINE_LISTEN="0.0.0.0" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
 [ "$HOST_NETWORK_ADDR" = "lan" ] && HOST_DEFINE_LISTEN="$(__local_lan_ip)" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
 [ "$HOST_NETWORK_ADDR" = "docker" ] && HOST_DEFINE_LISTEN="$(__docker_gateway_ip)" && HOST_LISTEN_ADDR="$(__docker_gateway_ip)"
@@ -416,10 +432,10 @@ DOCKER_SET_OPTIONS="${DOCKER_CUSTOM_ARGUMENTS:-}"
 [ "$CONTAINER_PRIVILEGED_ENABLED" = "yes" ] && DOCKER_SET_OPTIONS+="--privileged "
 [ "$CONTAINER_INTERACTIVE_ENABLED" = "yes" ] && DOCKER_SET_OPTIONS+="--interactive "
 [ -n "$CONTAINER_SHM_SIZE" ] && DOCKER_SET_OPTIONS+="--shm-size=$CONTAINER_SHM_SIZE "
-[ -n "$CONTAINER_HOSTNAME" ] && DOCKER_SET_OPTIONS+="--hostname $CONTAINER_HOSTNAME "
-[ -n "$CONTAINER_DOMAINNAME" ] && DOCKER_SET_OPTIONS+="--domainname $CONTAINER_DOMAINNAME "
 [ "$CONTAINER_AUTO_DELETE" = "yes" ] && DOCKER_SET_OPTIONS+="--rm " && CONTAINER_AUTO_RESTART=""
 [ -n "$CONTAINER_TIMEZONE" ] && DOCKER_SET_OPTIONS+="--env TZ=$CONTAINER_TIMEZONE --env TIMEZONE=$CONTAINER_TIMEZONE "
+[ -n "$CONTAINER_HOSTNAME" ] && DOCKER_SET_OPTIONS+="--hostname $CONTAINER_HOSTNAME --env HOSTNAME=$CONTAINER_HOSTNAME "
+[ -n "$CONTAINER_DOMAINNAME" ] && DOCKER_SET_OPTIONS+="--domainname $CONTAINER_DOMAINNAME --env DOMAINNAME=$FULL_DOMAIN_NAME --env HOSTADMIN= "
 [ "$HOST_DOCKER_NETWORK" = "host" ] && DOCKER_SET_OPTIONS+="--net-host " || DOCKER_SET_OPTIONS+="--network ${HOST_DOCKER_NETWORK:-bridge} "
 [ -n "$CONTAINER_AUTO_RESTART" ] && DOCKER_SET_OPTIONS+="--restart=$CONTAINER_AUTO_RESTART " || DOCKER_SET_OPTIONS+="--restart unless-stopped "
 
@@ -663,7 +679,6 @@ if __am_i_online; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Copy over data files - keep the same stucture as -v dataDir/mnt:/mount
-[ "$SUDO_USER" = "root" ] || sudo -HE chown -Rf "$SUDO_USER":"$SUDO_USER" "$DATADIR" "$INSTDIR" &>/dev/null
 if [ -d "$INSTDIR/rootfs" ] && [ ! -f "$DATADIR/.installed" ]; then
   printf_yellow "Copying files to $DATADIR"
   cp -Rf "$INSTDIR/rootfs/." "$DATADIR/" &>/dev/null
@@ -680,24 +695,25 @@ DOCKER_SET_PORTS_ENV_TMP=""
 DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}' | tr '\n' ',' | grep '^')"
 DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}' | tr '\n' ',' | grep '^')"
 DOCKER_SET_PORTS_ENV_TMP+="$(echo "$DOCKER_SET_PORTS_ENV_TMP" | tr ' ' '\n' | grep '[0-9]:[0-9]' | sort -u | sed 's|/.*||g' grep -v '^$' | tr '\n' ',' | grep '^' || echo '')"
-DOCKER_SET_PORTS_ENV="${DOCKER_SET_PORTS_ENV_TMP//,/ }" DOCKER_SET_PORTS_ENV_TMP=""
+DOCKER_SET_PORTS_ENV="$(__trim "${DOCKER_SET_PORTS_ENV_TMP//,/ }")"
 [ -n "$DOCKER_SET_PORTS_ENV" ] && DOCKER_SET_OPTIONS+="--env ENV_PORTS=\"${DOCKER_SET_PORTS_ENV//: /}\""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-HUB_IMAGE_URL="${HUB_IMAGE_URL:-}"
-HUB_IMAGE_TAG="${HUB_IMAGE_TAG:-}"
-DOCKER_SET_CAP="${DOCKER_SET_CAP:-}"
-DOCKER_SET_ENV="${DOCKER_SET_ENV:-}"
-DOCKER_SET_DEV="${DOCKER_SET_DEV:-}"
-DOCKER_SET_MNT="${DOCKER_SET_MNT:-}"
-DOCKER_SET_LINK="${DOCKER_SET_LINK:-}"
-DOCKER_SET_LABELS="${DOCKER_SET_LABELS:-}"
-DOCKER_SET_SYSCTL="${DOCKER_SET_SYSCTL:-}"
-DOCKER_SET_OPTIONS="${DOCKER_SET_OPTIONS:-}"
-CONTAINER_COMMANDS="${CONTAINER_COMMANDS[*]:-}"
-DOCKER_SET_PUBLISH="${DOCKER_SET_PUBLISH:-}"
+HUB_IMAGE_URL="$(__trim "{HUB_IMAGE_URL:-}")"
+HUB_IMAGE_TAG="$(__trim "{HUB_IMAGE_TAG:-}")"
+DOCKER_SET_CAP="$(__trim "${DOCKER_SET_CAP:-}")"
+DOCKER_SET_ENV="$(__trim "${DOCKER_SET_ENV:-}")"
+DOCKER_SET_DEV="$(__trim "${DOCKER_SET_DEV:-}")"
+DOCKER_SET_MNT="$(__trim "${DOCKER_SET_MNT:-}")"
+DOCKER_SET_LINK="$(__trim "${DOCKER_SET_LINK:-}")"
+DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS:-}")"
+DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL:-}")"
+DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS:-}")"
+CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS:-}")"
+DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH:-}")"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
-EXECUTE_DOCKER_CMD="eval docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+EXECUTE_DOCKER_CMD="$(__trim "$EXECUTE_DOCKER_CMD")"
 if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
   printf_yellow "Installing containers using docker-compose"
   sed -i 's|REPLACE_DATADIR|'$DATADIR'' "$INSTDIR/docker-compose.yml"
@@ -723,12 +739,13 @@ if [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
 # Install script for $CONTAINER_NAME
 
 $EXECUTE_PRE_INSTALL
-$EXECUTE_DOCKER_CMD
+${EXECUTE_DOCKER_CMD[@]}
+exit \$?
 
 EOF
     [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ] && chmod -Rf 755 "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
   fi
-  if __sudo $EXECUTE_DOCKER_CMD 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
+  if __sudo "${EXECUTE_DOCKER_CMD[@]}" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
     rm -Rf "${TMP:-/tmp}/$APPNAME.err.log"
   else
     ERROR_LOG="true"
@@ -773,6 +790,10 @@ run_postinst() {
         echo "$addr     $CONTAINER_HOSTNAME" | sudo tee -a "/etc/hosts" &>/dev/null
       fi
     fi
+  fi
+  if [ "$SUDO_USER" != "root" ] && [ -n "$SUDO_USER" ]; then
+    sudo -HE chown -Rf "$SUDO_USER":"$SUDO_USER" "$DATADIR" "$INSTDIR" "$INSTDIR" &>/dev/null
+    true
   fi
 }
 #
