@@ -290,11 +290,11 @@ CONTAINER_HTTP_PROTO="http"
 CONTAINER_HTTP_PORT=""
 CONTAINER_HTTPS_PORT=""
 CONTAINER_SERVICE_PORT="5001"
-CONTAINER_ADD_CUSTOM_PORT="5002"
-CONTAINER_ADD_CUSTOM_PORT+=""
+CONTAINER_ADD_CUSTOM_PORT="5002,5010"
+CONTAINER_ADD_CUSTOM_PORT+="10000,10001"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
-CONTAINER_ADD_CUSTOM_LISTEN=""
+CONTAINER_ADD_CUSTOM_LISTEN="$HOST_DOCKER_NETWORK:6002:10100,$HOST_DOCKER_NETWORK:6006:20000,"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
 CONTAINER_LINK="tor"
