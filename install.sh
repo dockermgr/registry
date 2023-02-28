@@ -819,8 +819,8 @@ if docker ps -a | grep -qs "$CONTAINER_NAME"; then
     for service in $SET_PORT; do
       if [ "$service" != "--publish" ] && [ "$service" != " " ] && [ -n "$service" ]; then
         service="${service//\/*/}"
-        set_service="${service//*:*:/}"
-        set_listen="${set_service//:*:*/}"
+        set_service="${service%:*}"
+        set_listen="${service//*:[^:]*:/}"
         listen="${set_listen//0.0.0.0/$SET_ADDR}"
         [ -z "$listen" ] || printf_cyan "$set_service is running on: $listen"
       fi
