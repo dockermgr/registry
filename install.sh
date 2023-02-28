@@ -395,8 +395,11 @@ else
   CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$HOST_FULL_HOST}"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup arrays
+DOCKER_SET_PUBLISH=("")
+DOCKER_SET_TMP_PUBLISH=("")
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Redfine variables
-DOCKER_SET_PUBLISH=""
 [ -n "$CONTAINER_NAME" ] || CONTAINER_NAME="$(__name)"
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
 [ "$GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
@@ -589,7 +592,7 @@ if [ -n "$CONTAINER_OPT_PORT_VAR" ]; then
     if [ "$port" != "" ] && [ "$port" != " " ]; then
       port="${port// /}"
       echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
-      DOCKER_SET_PUBLISH+="--publish $port "
+      DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $port")
     fi
   done
 fi
@@ -598,20 +601,19 @@ SET_SERVER_PORTS_TMP="${CONTAINER_HTTP_PORT//,/ }"
 SET_SERVER_PORTS_TMP+="${CONTAINER_HTTPS_PORT//,/ }"
 SET_SERVER_PORTS_TMP+="${CONTAINER_SERVICE_PORT//,/ }"
 SET_SERVER_PORTS_TMP+="${CONTAINER_ADD_CUSTOM_PORT//,/ }"
-SET_SERVER_PORTS=("${SET_SERVER_PORTS_TMP[@]}")
-SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
-SET_LISTEN="${SET_LISTEN// /}"
+SET_SERVER_PORTS="${SET_SERVER_PORTS_TMP//  / }"
+SET_LISTEN=${HOST_DEFINE_LISTEN//:*/}
 for port in "${SET_SERVER_PORTS[@]}"; do
   if [ "$port" != " " ] && [ -n "$port" ]; then
     port="${port// /}"
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
-      ADDR="127.0.0.2"
-      DOCKER_SET_PUBLISH+="--publish $ADDR:$port "
+      ADDR="${HOST_NETWORK_LOCAL_ADDR:-127.0.0.1}"
+      DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $ADDR:$port")
     elif [ -n "$SET_LISTEN" ]; then
-      DOCKER_SET_PUBLISH+="--publish $SET_LISTEN:$port "
+      DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $SET_LISTEN:$port")
     else
-      DOCKER_SET_PUBLISH+="--publish $port "
+      DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $port")
     fi
   fi
 done
@@ -622,7 +624,7 @@ if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
     port="${port// /}"
     if [ "$port" != " " ] && [ -n "$port" ]; then
       echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
-      DOCKER_SET_PUBLISH+="--publish $port "
+      DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $port")
     fi
   done
 fi
@@ -630,7 +632,7 @@ fi
 # container web server configuration
 if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   SET_WEB_PORT=""
-  CONTAINER_WEB_SERVER_IP="$HOST_NETWORK_LOCAL_ADDR"
+  CONTAINER_WEB_SERVER_IP=$HOST_NETWORK_LOCAL_ADDR
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
   for port in "${CONTAINER_WEB_SERVER_PORT[@]}"; do
     if [ "$port" != " " ] && [ -n "$port" ]; then
@@ -638,11 +640,11 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
       RANDOM_PORT="$(__rport)"
       TYPE="$(echo "$port" | grep '/' | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
       if [ -z "$TYPE" ]; then
-        DOCKER_SET_PUBLISH+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port "
+        DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port")
       else
-        DOCKER_SET_PUBLISH+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port/$TYPE "
+        DOCKER_SET_TMP_PUBLISH_TMP+=("--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port/$TYPE")
       fi
-      SET_WEB_PORT+="$CONTAINER_WEB_SERVER_IP:$RANDOM_PORT "
+      SET_WEB_PORT+=("$CONTAINER_WEB_SERVER_IP:$RANDOM_PORT")
     fi
   done
   [ "$CONTAINER_WEB_SERVER_SSL_ENABLED" = "yes" ] && CONTAINER_HTTP_PROTO="https" || CONTAINER_HTTP_PROTO="http"
@@ -726,7 +728,7 @@ DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS[*]:-}")"
 DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL[*]:-}")"
 DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS[*]:-}")"
 CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS[*]:-}")"
-DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH[*]:-}")"
+DOCKER_SET_PUBLISH=("$(__trim "${DOCKER_SET_TMP_PUBLISH[@]:-}")")
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_ENV $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="$(__trim "$EXECUTE_DOCKER_CMD")"
