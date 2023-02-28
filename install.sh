@@ -399,7 +399,7 @@ fi
 DOCKER_SET_PUBLISH=""
 [ -n "$CONTAINER_NAME" ] || CONTAINER_NAME="$(__name)"
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
-[ "$REGISTRY_USERNAME" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
+[ "$GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
 [ -n "$CONTAINER_LINK" ] && { [ "$HOST_DOCKER_NETWORK" = "bridge" ] || [ "$HOST_DOCKER_NETWORK" = "host" ]; } && CONTAINER_LINK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set network Variables
@@ -497,28 +497,30 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add username and password to env file
 if [ -n "$SET_USER_NAME" ]; then
-  if ! grep -qs "$REGISTRY_USERNAME" "$DOCKERMGR_CONFIG_DIR/env/$APPNAME"; then
+  if ! grep -qs "$GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME" "$DOCKERMGR_CONFIG_DIR/env/$APPNAME"; then
     cat <<EOF >>"$DOCKERMGR_CONFIG_DIR/env/$APPNAME"
-REGISTRY_USERNAME="${SET_USER_NAME:-$REGISTRY_USERNAME}"
+GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME="${SET_USER_NAME:-$GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME}"
 EOF
   fi
 fi
 if [ -n "$SET_USER_PASS" ]; then
-  if ! grep -qs "$REGISTRY_PASSWORD" "$DOCKERMGR_CONFIG_DIR/env/$APPNAME"; then
+  if ! grep -qs "$GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD" "$DOCKERMGR_CONFIG_DIR/env/$APPNAME"; then
     cat <<EOF >>"$DOCKERMGR_CONFIG_DIR/env/$APPNAME"
-REGISTRY_PASSWORD="${SET_USER_PASS:-$REGISTRY_PASSWORD}"
+GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD="${SET_USER_PASS:-$GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD}"
 EOF
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_LINK="" CONTAINER_LINK="${CONTAINER_LINK//,/ }"
+DOCKER_SET_LINK=""
+CONTAINER_LINK="${CONTAINER_LINK//,/ }"
 for link in "${CONTAINER_LINK[@]}"; do
   if [ "$link" != "" ] && [ "$link" != " " ]; then
     DOCKER_SET_LINK+="--link $link "
   fi
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_LABELS="" CONTAINER_LABELS="${CONTAINER_LABELS//,/ }"
+DOCKER_SET_LABELS=""
+CONTAINER_LABELS="${CONTAINER_LABELS//,/ }"
 for label in "${CONTAINER_LABELS[@]}"; do
   if [ "$label" != "" ] && [ "$label" != " " ]; then
     DOCKER_SET_LABELS+="--label $label "
@@ -526,7 +528,8 @@ for label in "${CONTAINER_LABELS[@]}"; do
 done
 CONTAINER_LABELS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DOCKER_SET_CAP="" CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//,/ }"
+DOCKER_SET_CAP=""
+CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//,/ }"
 for cap in "${CONTAINER_CAPABILITIES[@]}"; do
   if [ "$cap" != "" ] && [ "$cap" != " " ]; then
     DOCKER_SET_CAP+="--cap-add $cap "
@@ -579,21 +582,28 @@ for mnt in "${CONTAINER_MOUNTS[@]}"; do
 done
 CONTAINER_MOUNTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//,/ }" SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
+CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//,/ }"
+SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
 if [ -n "$CONTAINER_OPT_PORT_VAR" ]; then
   for port in "${CONTAINER_OPT_PORT_VAR[@]}"; do
     if [ "$port" != "" ] && [ "$port" != " " ]; then
+      port="${port// /}"
       echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
       DOCKER_SET_PUBLISH+="--publish $port "
     fi
   done
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SET_SERVER_PORTS="$CONTAINER_HTTP_PORT $CONTAINER_HTTPS_PORT $CONTAINER_SERVICE_PORT $CONTAINER_ADD_CUSTOM_PORT"
-SET_SERVER_PORTS="${SET_SERVER_PORTS//,/ }" SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
+SET_SERVER_PORTS_TMP="${CONTAINER_HTTP_PORT//,/ }"
+SET_SERVER_PORTS_TMP+="${CONTAINER_HTTPS_PORT//,/ }"
+SET_SERVER_PORTS_TMP+="${CONTAINER_SERVICE_PORT//,/ }"
+SET_SERVER_PORTS_TMP+="${CONTAINER_ADD_CUSTOM_PORT//,/ }"
+SET_SERVER_PORTS=("${SET_SERVER_PORTS_TMP[@]}")
+SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
 SET_LISTEN="${SET_LISTEN// /}"
 for port in "${SET_SERVER_PORTS[@]}"; do
   if [ "$port" != " " ] && [ -n "$port" ]; then
+    port="${port// /}"
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
       ADDR="127.0.0.2"
@@ -609,6 +619,7 @@ done
 CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//,/ }"
 if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
   for port in "${CONTAINER_ADD_CUSTOM_LISTEN[@]}"; do
+    port="${port// /}"
     if [ "$port" != " " ] && [ -n "$port" ]; then
       echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
       DOCKER_SET_PUBLISH+="--publish $port "
@@ -623,6 +634,7 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
   for port in "${CONTAINER_WEB_SERVER_PORT[@]}"; do
     if [ "$port" != " " ] && [ -n "$port" ]; then
+      port="${port// /}"
       RANDOM_PORT="$(__rport)"
       TYPE="$(echo "$port" | grep '/' | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
       if [ -z "$TYPE" ]; then
@@ -689,9 +701,9 @@ if [ -d "$INSTDIR/rootfs" ] && [ ! -f "$DATADIR/.installed" ]; then
   find "$DATADIR" -name ".gitkeep" -type f -exec rm -rf {} \; &>/dev/null
 fi
 if [ -f "$DATADIR/.installed" ]; then
-  sudo -HE date +'Updated on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
+  sudo -HE date +'Updated on %Y-%m-%d at %H:%M' | tee "$DATADIR/.installed" &>/dev/null
 else
-  sudo -HE date +'installed on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
+  sudo -HE date +'installed on %Y-%m-%d at %H:%M' | tee "$DATADIR/.installed" &>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set temp env for PORTS ENV variable
@@ -703,18 +715,18 @@ DOCKER_SET_PORTS_ENV="$(__trim "${DOCKER_SET_PORTS_ENV_TMP//,/ }")"
 [ -n "$DOCKER_SET_PORTS_ENV" ] && DOCKER_SET_OPTIONS+="--env ENV_PORTS=\"${DOCKER_SET_PORTS_ENV//: /}\""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-HUB_IMAGE_URL="$(__trim "${HUB_IMAGE_URL[@]:-}")"
-HUB_IMAGE_TAG="$(__trim "${HUB_IMAGE_TAG[@]:-}")"
-DOCKER_SET_CAP="$(__trim "${DOCKER_SET_CAP[@]:-}")"
-DOCKER_SET_ENV="$(__trim "${DOCKER_SET_ENV[@]:-}")"
-DOCKER_SET_DEV="$(__trim "${DOCKER_SET_DEV[@]:-}")"
-DOCKER_SET_MNT="$(__trim "${DOCKER_SET_MNT[@]:-}")"
-DOCKER_SET_LINK="$(__trim "${DOCKER_SET_LINK[@]:-}")"
-DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS[@]:-}")"
-DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL[@]:-}")"
-DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS[@]:-}")"
-CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS[@]:-}")"
-DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH[@]:-}")"
+HUB_IMAGE_URL="$(__trim "${HUB_IMAGE_URL[*]:-}")"
+HUB_IMAGE_TAG="$(__trim "${HUB_IMAGE_TAG[*]:-}")"
+DOCKER_SET_CAP="$(__trim "${DOCKER_SET_CAP[*]:-}")"
+DOCKER_SET_ENV="$(__trim "${DOCKER_SET_ENV[*]:-}")"
+DOCKER_SET_DEV="$(__trim "${DOCKER_SET_DEV[*]:-}")"
+DOCKER_SET_MNT="$(__trim "${DOCKER_SET_MNT[*]:-}")"
+DOCKER_SET_LINK="$(__trim "${DOCKER_SET_LINK[*]:-}")"
+DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS[*]:-}")"
+DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL[*]:-}")"
+DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS[*]:-}")"
+CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS[*]:-}")"
+DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH[*]:-}")"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_ENV $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="$(__trim "$EXECUTE_DOCKER_CMD")"
@@ -743,13 +755,13 @@ if [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
 # Install script for $CONTAINER_NAME
 
 $EXECUTE_PRE_INSTALL
-${EXECUTE_DOCKER_CMD[@]}
+$EXECUTE_DOCKER_CMD
 exit \$?
 
 EOF
     [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ] && chmod -Rf 755 "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
   fi
-  if __sudo "${EXECUTE_DOCKER_CMD[@]}" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
+  if __sudo ${EXECUTE_DOCKER_CMD} 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
     rm -Rf "${TMP:-/tmp}/$APPNAME.err.log"
   else
     ERROR_LOG="true"
@@ -796,7 +808,8 @@ run_postinst() {
     fi
   fi
   if [ "$SUDO_USER" != "root" ] && [ -n "$SUDO_USER" ]; then
-    sudo -HE chown -Rf "$SUDO_USER":"$SUDO_USER" "$DATADIR" "$INSTDIR" "$INSTDIR" &>/dev/null
+    sudo -HE chown -f "$SUDO_USER":"$SUDO_USER" "$DATADIR" "$INSTDIR" "$INSTDIR" &>/dev/null
+    sudo -HE chown -f "$SUDO_USER":"$SUDO_USER" "$DATADIR" "$INSTDIR" "$INSTDIR" &>/dev/null
     true
   fi
 }
