@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302272205-git
+##@Version           :  202302272209-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 22:05 EST
+# @@Created          :  Monday, Feb 27, 2023 22:09 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302272205-git"
+VERSION="202302272209-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -693,7 +693,7 @@ DOCKER_SET_LABELS="${DOCKER_SET_LABELS:-}"
 DOCKER_SET_SYSCTL="${DOCKER_SET_SYSCTL:-}"
 DOCKER_SET_OPTIONS="${DOCKER_SET_OPTIONS:-}"
 CONTAINER_COMMANDS="${CONTAINER_COMMANDS:-}"
-DOCKER_SET_PUBLISH="$(echo "${DOCKER_SET_PUBLISH:-}" | tr ' ' '\n' | sort -u | grep -v '^$' | grep '[0-9]' | grep -v '::.*' | tr '\n' ' ' | grep '^')"
+DOCKER_SET_PUBLISH="${DOCKER_SET_PUBLISH:-}"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="${EXECUTE_DOCKER_CMD//  / }"
