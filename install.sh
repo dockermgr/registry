@@ -289,7 +289,7 @@ CONTAINER_HTTP_PROTO="http"
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
 CONTAINER_HTTP_PORT=" "
 CONTAINER_HTTPS_PORT=" "
-CONTAINER_SERVICE_PORT="5001"
+CONTAINER_SERVICE_PORT="5001 "
 CONTAINER_ADD_CUSTOM_PORT="5002,5010 "
 CONTAINER_ADD_CUSTOM_PORT+="10000,10001 "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -301,27 +301,27 @@ CONTAINER_LINK="tor"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional mounts [/dir:/dir,/otherdir:/otherdir]
 CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z "
-CONTAINER_MOUNTS+=""
+CONTAINER_MOUNTS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional devices [/dev:/dev,/otherdev:/otherdev]
 CONTAINER_DEVICES="/dev/snd"
-CONTAINER_DEVICES+=""
+CONTAINER_DEVICES+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional variables [myvar=var,myothervar=othervar]
 CONTAINER_ENV="TEST=TRUE,IMAGE=alpine"
-CONTAINER_ENV+=""
+CONTAINER_ENV+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set sysctl []
 CONTAINER_SYSCTL=""
-CONTAINER_SYSCTL+=""
+CONTAINER_SYSCTL+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set capabilites [CAP,OTHERCAP]
 CONTAINER_CAPABILITIES="SYS_ADMIN,SYS_TIME "
-CONTAINER_CAPABILITIES+=""
+CONTAINER_CAPABILITIES+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels [traefik.enable=true,label=label,otherlabel=label2]
 CONTAINER_LABELS="traefik.enable=true"
-CONTAINER_LABELS+=""
+CONTAINER_LABELS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container username and password and the env name [CONTAINER_ENV_USER_NAME=CONTAINER_USER_NAME] - [password=pass]
 CONTAINER_ENV_USER_NAME=""
@@ -331,11 +331,11 @@ CONTAINER_USER_PASS="${REGISTRY_PASSWORD:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify container arguments - will run in container [/path/to/script]
 CONTAINER_COMMANDS=""
-CONTAINER_COMMANDS+=""
+CONTAINER_COMMANDS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional docker arguments - see docker run --help [--option arg1,--option2]
 DOCKER_CUSTOM_ARGUMENTS=""
-DOCKER_CUSTOM_ARGUMENTS+=""
+DOCKER_CUSTOM_ARGUMENTS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Show post install message
 POST_SHOW_FINISHED_MESSAGE=""
@@ -371,16 +371,19 @@ mkdir -p "$LOCAL_CONFIG_DIR"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/env"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CONTAINER_HTTP_PORT=" " CONTAINER_HTTPS_PORT=" "
+CONTAINER_SERVICE_PORT=" " CONTAINER_ADD_CUSTOM_PORT=" "
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variable cleanup
-# CONTAINER_ENV="${CONTAINER_ENV//  / }"
-# CONTAINER_LABELS="${CONTAINER_LABELS//  / }"
-# CONTAINER_SYSCTL="${CONTAINER_SYSCTL//  / }"
-# CONTAINER_MOUNTS="${CONTAINER_MOUNTS//  / }"
-# CONTAINER_DEVICES="${CONTAINER_DEVICES//  / }"
-# CONTAINER_COMMANDS="${CONTAINER_COMMANDS//  / }"
-# CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//  / }"
-# DOCKER_CUSTOM_ARGUMENTS="${DOCKER_CUSTOM_ARGUMENTS//  / }"
-# CONTAINER_ADD_CUSTOM_PORT="${CONTAINER_ADD_CUSTOM_PORT//  / }"
+CONTAINER_ENV="${CONTAINER_ENV//  / }"
+CONTAINER_LABELS="${CONTAINER_LABELS//  / }"
+CONTAINER_SYSCTL="${CONTAINER_SYSCTL//  / }"
+CONTAINER_MOUNTS="${CONTAINER_MOUNTS//  / }"
+CONTAINER_DEVICES="${CONTAINER_DEVICES//  / }"
+CONTAINER_COMMANDS="${CONTAINER_COMMANDS//  / }"
+CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//  / }"
+DOCKER_CUSTOM_ARGUMENTS="${DOCKER_CUSTOM_ARGUMENTS//  / }"
+CONTAINER_ADD_CUSTOM_PORT="${CONTAINER_ADD_CUSTOM_PORT//  / }"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set hostname and domain
 HOST_SHORT_HOST="${SET_LOCAL_HOSTNAME:-$SET_SHORT_HOSTNAME}"
