@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302271921-git
+##@Version           :  202302271958-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 19:21 EST
+# @@Created          :  Monday, Feb 27, 2023 19:58 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302271921-git"
+VERSION="202302271958-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -274,13 +274,13 @@ CONTAINER_WEB_SERVER_PORT="5000"
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or CONTAINER_PRIVATE=yes
+# Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or HOST_NETWORK_ADDR=local
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
 CONTAINER_HTTP_PORT=""
 CONTAINER_HTTPS_PORT=""
 CONTAINER_SERVICE_PORT=""
 CONTAINER_ADD_CUSTOM_PORT=""
-CONTAINER_ADD_CUSTOM_PORT+=""
+CONTAINER_ADD_CUSTOM_PORT+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
 CONTAINER_ADD_CUSTOM_LISTEN=""
@@ -289,28 +289,28 @@ CONTAINER_ADD_CUSTOM_LISTEN=""
 CONTAINER_LINK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional mounts [/dir:/dir,/otherdir:/otherdir]
-CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z"
-CONTAINER_MOUNTS+=""
+CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z "
+CONTAINER_MOUNTS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional devices [/dev:/dev,/otherdev:/otherdev]
 CONTAINER_DEVICES=""
-CONTAINER_DEVICES+=""
+CONTAINER_DEVICES+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional variables [myvar=var,myothervar=othervar]
 CONTAINER_ENV=""
-CONTAINER_ENV+=""
+CONTAINER_ENV+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set sysctl []
 CONTAINER_SYSCTL=""
-CONTAINER_SYSCTL+=""
+CONTAINER_SYSCTL+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set capabilites [CAP,OTHERCAP]
 CONTAINER_CAPABILITIES="SYS_ADMIN,SYS_TIME "
-CONTAINER_CAPABILITIES+=""
+CONTAINER_CAPABILITIES+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels [traefik.enable=true,label=label,otherlabel=label2]
 CONTAINER_LABELS=""
-CONTAINER_LABELS+=""
+CONTAINER_LABELS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container username and password and the env name [CONTAINER_ENV_USER_NAME=CONTAINER_USER_NAME] - [password=pass]
 CONTAINER_ENV_USER_NAME=""
@@ -320,11 +320,11 @@ CONTAINER_USER_PASS="${REGISTRY_PASSWORD:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify container arguments - will run in container [/path/to/script]
 CONTAINER_COMMANDS=""
-CONTAINER_COMMANDS+=""
+CONTAINER_COMMANDS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional docker arguments - see docker run --help [--option arg1,--option2]
 DOCKER_CUSTOM_ARGUMENTS=""
-DOCKER_CUSTOM_ARGUMENTS+=""
+DOCKER_CUSTOM_ARGUMENTS+=" "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Show post install message
 POST_SHOW_FINISHED_MESSAGE=""
@@ -360,6 +360,17 @@ mkdir -p "$LOCAL_CONFIG_DIR"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/env"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# variable cleanup
+CONTAINER_ENV="${CONTAINER_ENV//  / }"
+CONTAINER_LABELS="${CONTAINER_LABELS//  / }"
+CONTAINER_SYSCTL="${CONTAINER_SYSCTL//  / }"
+CONTAINER_MOUNTS="${CONTAINER_MOUNTS//  / }"
+CONTAINER_DEVICES="${CONTAINER_DEVICES//  / }"
+CONTAINER_COMMANDS="${CONTAINER_COMMANDS//  / }"
+CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//  / }"
+DOCKER_CUSTOM_ARGUMENTS="${DOCKER_CUSTOM_ARGUMENTS//  / }"
+CONTAINER_ADD_CUSTOM_PORT="${CONTAINER_ADD_CUSTOM_PORT//  / }"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set hostname and domain
 HOST_SHORT_HOST="${SET_LOCAL_HOSTNAME:-$(hostname -s 2>/dev/null | grep '^')}"
 HOST_FULL_DOMAIN="${SET_LOCAL_DOMAINNAME:-$(hostname -d 2>/dev/null | grep '^' || echo 'home')}"
@@ -375,11 +386,11 @@ HOST_DEFINE_LISTEN="${HOST_DEFINE_LISTEN:-SET_LOCAL_IP}"
 CONTAINER_DOMAINNAME="${CONTAINER_DOMAINNAME:-$SERVER_FULL_DOMAIN}"
 CONTAINER_HOSTNAME="${CONTAINER_HOSTNAME:-$APPNAME.$CONTAINER_DOMAINNAME}"
 [[ "$CONTAINER_HOSTNAME" = server.* ]] && CONTAINER_HOSTNAME="$APPNAME.$SERVER_FULL_DOMAIN"
-[ "$HOST_NETWORK_ADDR" = "local" ] && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1"
 [ "$HOST_NETWORK_ADDR" = "public" ] && HOST_DEFINE_LISTEN="0.0.0.0" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
 [ "$HOST_NETWORK_ADDR" = "lan" ] && HOST_DEFINE_LISTEN="$(__local_lan_ip)" && HOST_LISTEN_ADDR="$(__local_lan_ip)"
-[ "$HOST_NETWORK_ADDR" = "yes" ] && CONTAINER_PRIVATE="yes" && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1"
 [ "$HOST_NETWORK_ADDR" = "docker" ] && HOST_DEFINE_LISTEN="$(__docker_gateway_ip)" && HOST_LISTEN_ADDR="$(__docker_gateway_ip)"
+[ "$HOST_NETWORK_ADDR" = "yes" ] && CONTAINER_PRIVATE="yes" && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" && CONTAINER_PRIVATE="yes"
+[ "$HOST_NETWORK_ADDR" = "local" ] && CONTAINER_PRIVATE="yes" && HOST_DEFINE_LISTEN="127.0.0.1" && HOST_LISTEN_ADDR="127.0.0.1" && CONTAINER_PRIVATE="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # rewrite variables
 [ -n "$HUB_IMAGE_TAG" ] || HUB_IMAGE_TAG="latest"
@@ -404,7 +415,7 @@ fi
 [ -n "$DOCKER_CUSTOM_ARGUMENTS" ] && DOCKER_CUSTOM_ARGUMENTS+="${DOCKER_CUSTOM_ARGUMENTS//,/ } "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set docker options from env
-DOCKER_SET_OPTIONS=""
+DOCKER_SET_OPTIONS="${DOCKER_CUSTOM_ARGUMENTS:-}"
 [ "$CONTAINER_TTY_ENABLED" = "yes" ] && DOCKER_SET_OPTIONS+="--tty "
 [ -n "$CONTAINER_NAME" ] && DOCKER_SET_OPTIONS+="--name=$CONTAINER_NAME "
 [ "$CONTAINER_PRIVILEGED_ENABLED" = "yes" ] && DOCKER_SET_OPTIONS+="--privileged "
@@ -421,9 +432,9 @@ DOCKER_SET_OPTIONS=""
 # Mounts from env
 [ "$CGROUPS_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$CGROUPS_MOUNTS "
 [ "$HOST_ETC_HOSTS_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="/etc/hosts:/etc/hosts:ro "
+[ "$HOST_RESOLVE_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_RESOLVE_FILE:/etc/resolv.conf "
 [ "$DOCKER_SOCKET_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock "
-[ "$DOCKER_CONFIG_ENABLED" = "yes" ] && CONTAINER_MOUNTS="$HOST_DOCKER_CONFIG:$CONTAINER_DOCKER_CONFIG_FILE:ro "
-[ "$HOST_RESOLVE_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_RESOLVE_FILE:/etc/resolv.conf " || HOST_RESOLVE_FILE=""
+[ "$DOCKER_CONFIG_ENABLED" = "yes" ] && CONTAINER_MOUNTS+="$HOST_DOCKER_CONFIG:$CONTAINER_DOCKER_CONFIG_FILE:ro "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # env variables from env
 [ -z "$CONTAINER_USER_NAME" ] || ADDITION_ENV+="${CONTAINER_ENV_USER_NAME:-username}=$CONTAINER_USER_NAME "
@@ -605,6 +616,7 @@ if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # container web server configuration
+SET_WEB_PORT=""
 SET_WEB_SERVER_PORTS=""
 if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   CONTAINER_WEB_SERVER_IP="$(__docker_gateway_ip)"
@@ -673,15 +685,15 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set temp env for PORTS ENV variable
 DOCKER_SET_PORTS_ENV_TMP=""
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}' | sed 's|/.*||g')"
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}' | sed 's|/.*||g')"
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$DOCKER_SET_PORTS_ENV_TMP" | tr ' ' '\n' | sort -u | grep '.*:*.' | grep '^' || echo '')"
-DOCKER_SET_PORTS_ENV="${DOCKER_SET_PORTS_ENV_TMP//--publish/}" DOCKER_SET_PORTS_ENV_TMP=""
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}')"
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}')"
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$DOCKER_SET_PORTS_ENV_TMP" | tr ' ' '\n' | sort -u | grep '.*[0-9]:[0-9]*.' | sed 's|/.*||g' | tr '\n' ',' | grep '^' || echo '')"
+DOCKER_SET_PORTS_ENV="${DOCKER_SET_PORTS_ENV_TMP//,/ }" DOCKER_SET_PORTS_ENV_TMP=""
 [ -n "$DOCKER_SET_PORTS_ENV" ] && DOCKER_SET_OPTIONS+="--env ENV_PORTS=\"$DOCKER_SET_PORTS_ENV\""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
-EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $DOCKER_SET_OPTIONS $DOCKER_CUSTOM_ARGUMENTS $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $DOCKER_SET_OPTIONS $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="${EXECUTE_DOCKER_CMD//  / }"
 if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
   printf_yellow "Installing containers using docker-compose"
