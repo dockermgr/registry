@@ -207,7 +207,7 @@ HUB_IMAGE_TAG="latest"
 CONTAINER_NAME=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container user and group ID [yes/no] [id]
-USER_ID_ENABLED="no"
+USER_ID_ENABLED="yes"
 CONTAINER_USER_ID=""
 CONTAINER_GROUP_ID=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -228,24 +228,24 @@ CONTAINER_TTY_ENABLED="yes"
 CONTAINER_INTERACTIVE_ENABLED="no"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable cgroups [yes/no]
-CGROUPS_ENABLED="no"
+CGROUPS_ENABLED="yes"
 CGROUPS_MOUNTS="/sys/fs/cgroup:/sys/fs/cgroup:ro"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set location to resolv.conf [yes/no]
-HOST_RESOLVE_ENABLED="no"
+HOST_RESOLVE_ENABLED="yes"
 HOST_RESOLVE_FILE="/etc/resolv.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker socket [pathToSocket]
-DOCKER_SOCKET_ENABLED="no"
+DOCKER_SOCKET_ENABLED="yes"
 DOCKER_SOCKET_MOUNT="/var/run/docker.sock"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker config [~/.docker/config.json]
-DOCKER_CONFIG_ENABLED="no"
+DOCKER_CONFIG_ENABLED="yes"
 HOST_DOCKER_CONFIG="$HOME/.docker/config.json"
 CONTAINER_DOCKER_CONFIG_FILE="/root/.docker/config.json"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable display in container
-CONTAINER_X11_ENABLED="no"
+CONTAINER_X11_ENABLED="yes"
 HOST_X11_DISPLAY=""
 HOST_X11_SOCKET="/tmp/.X11-unix"
 HOST_X11_XAUTH="$HOME/.Xauthority"
@@ -289,39 +289,39 @@ CONTAINER_HTTP_PROTO="http"
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
 CONTAINER_HTTP_PORT=""
 CONTAINER_HTTPS_PORT=""
-CONTAINER_SERVICE_PORT=""
-CONTAINER_ADD_CUSTOM_PORT=""
-CONTAINER_ADD_CUSTOM_PORT+=" "
+CONTAINER_SERVICE_PORT="5001"
+CONTAINER_ADD_CUSTOM_PORT="5002"
+CONTAINER_ADD_CUSTOM_PORT+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
 CONTAINER_ADD_CUSTOM_LISTEN=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
-CONTAINER_LINK=""
+CONTAINER_LINK="tor"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional mounts [/dir:/dir,/otherdir:/otherdir]
 CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z "
-CONTAINER_MOUNTS+=" "
+CONTAINER_MOUNTS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional devices [/dev:/dev,/otherdev:/otherdev]
-CONTAINER_DEVICES=""
-CONTAINER_DEVICES+=" "
+CONTAINER_DEVICES="/dev/snd"
+CONTAINER_DEVICES+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional variables [myvar=var,myothervar=othervar]
-CONTAINER_ENV=""
-CONTAINER_ENV+=" "
+CONTAINER_ENV="TEST=TRUE,IMAGE=alpine"
+CONTAINER_ENV+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set sysctl []
 CONTAINER_SYSCTL=""
-CONTAINER_SYSCTL+=" "
+CONTAINER_SYSCTL+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set capabilites [CAP,OTHERCAP]
 CONTAINER_CAPABILITIES="SYS_ADMIN,SYS_TIME "
-CONTAINER_CAPABILITIES+=" "
+CONTAINER_CAPABILITIES+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels [traefik.enable=true,label=label,otherlabel=label2]
-CONTAINER_LABELS=""
-CONTAINER_LABELS+=" "
+CONTAINER_LABELS="traefik.enable=true"
+CONTAINER_LABELS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container username and password and the env name [CONTAINER_ENV_USER_NAME=CONTAINER_USER_NAME] - [password=pass]
 CONTAINER_ENV_USER_NAME=""
@@ -331,11 +331,11 @@ CONTAINER_USER_PASS="${REGISTRY_PASSWORD:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify container arguments - will run in container [/path/to/script]
 CONTAINER_COMMANDS=""
-CONTAINER_COMMANDS+=" "
+CONTAINER_COMMANDS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional docker arguments - see docker run --help [--option arg1,--option2]
 DOCKER_CUSTOM_ARGUMENTS=""
-DOCKER_CUSTOM_ARGUMENTS+=" "
+DOCKER_CUSTOM_ARGUMENTS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Show post install message
 POST_SHOW_FINISHED_MESSAGE=""
