@@ -400,6 +400,7 @@ DOCKER_SET_PUBLISH=""
 [ -n "$CONTAINER_NAME" ] || CONTAINER_NAME="$(__name)"
 [ "$CONTAINER_HTTPS_PORT" = "" ] || CONTAINER_HTTP_PROTO="https"
 [ "$REGISTRY_USERNAME" = "random" ] && CONTAINER_USER_PASS="$RANDOM_PASS"
+[ -n "$CONTAINER_LINK" ] && { [ "$HOST_DOCKER_NETWORK" = "bridge" ] || [ "$HOST_DOCKER_NETWORK" = "host" ]; } && CONTAINER_LINK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set network Variables
 LOCAL_NET_IP="$(__local_lan_ip)"
