@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302280521-git
-# @@Author           :  Jason Hempstead
-# @@Contact          :  jason@casjaysdev.com
-# @@License          :  LICENSE.md
-# @@ReadME           :  install.sh --help
-# @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Tuesday, Feb 28, 2023 05:21 EST
-# @@File             :  install.sh
-# @@Description      :  Container installer script for registry
-# @@Changelog        :  New script
-# @@TODO             :  Better documentation
-# @@Other            :
-# @@Resource         :
-# @@Terminal App     :  no
-# @@sudo/root        :  no
+##@Version           :  GEN_SCRIPT_REPLACE_VERSION
+# @@Author           :  GEN_SCRIPT_REPLACE_AUTHOR
+# @@Contact          :  GEN_SCRIPT_REPLACE_EMAIL
+# @@License          :  GEN_SCRIPT_REPLACE_LICENSE
+# @@ReadME           :  GEN_SCRIPT_REPLACE_FILENAME --help
+# @@Copyright        :  GEN_SCRIPT_REPLACE_COPYRIGHT
+# @@Created          :  GEN_SCRIPT_REPLACE_DATE
+# @@File             :  GEN_SCRIPT_REPLACE_FILENAME
+# @@Description      :  Container installer script for GEN_SCRIPT_REPLACE_APPNAME
+# @@Changelog        :  GEN_SCRIPT_REPLACE_CHANGELOG
+# @@TODO             :  GEN_SCRIPT_REPLACE_TODO
+# @@Other            :  GEN_SCRIPT_REPLACE_OTHER
+# @@Resource         :  GEN_SCRIPT_REPLACE_RES
+# @@Terminal App     :  GEN_SCRIPT_REPLACE_TERMINAL
+# @@sudo/root        :  GEN_SCRIPT_REPLACE_SUDO
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="registry"
-VERSION="202302280521-git"
+APPNAME="GEN_SCRIPT_REPLACE_APPNAME"
+VERSION="GEN_SCRIPT_REPLACE_VERSION"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -117,14 +117,14 @@ __show_post_message() {
 __docker_check || __docker_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Repository variables
-REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/registry"
+REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/GEN_SCRIPT_REPLACE_APPNAME"
 APPVERSION="$(__appversion "$REPO/raw/${GIT_REPO_BRANCH:-main}/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults variables
-APPNAME="registry"
-export APPDIR="$HOME/.local/share/srv/docker/registry"
-export DATADIR="$HOME/.local/share/srv/docker/registry/rootfs"
-export INSTDIR="$HOME/.local/share/CasjaysDev/dockermgr/registry"
+APPNAME="GEN_SCRIPT_REPLACE_APPNAME"
+export APPDIR="$HOME/.local/share/srv/docker/GEN_SCRIPT_REPLACE_APPNAME"
+export DATADIR="$HOME/.local/share/srv/docker/GEN_SCRIPT_REPLACE_APPNAME/rootfs"
+export INSTDIR="$HOME/.local/share/CasjaysDev/dockermgr/GEN_SCRIPT_REPLACE_APPNAME"
 export DOCKERMGR_CONFIG_DIR="${DOCKERMGR_CONFIG_DIR:-$HOME/.config/myscripts/dockermgr}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
@@ -160,17 +160,17 @@ while :; do
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup networking
-SET_LOCAL_NET_DEV="$(__route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}' | grep '^' || echo 'eth0')"
-SET_LOCAL_IP="$(__ifconfig $LOCAL_NET_DEV | grep -w 'inet' | awk -F ' ' '{print $2}' | grep -vE '127\.[0-255]\.[0-255]\.[0-255]' | tr ' ' '\n' | grep '^')"
+SET_LOCAL_NET_DEV=$(__route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}' | grep '^' || echo 'eth0')
+SET_LOCAL_IP=$(__ifconfig $LOCAL_NET_DEV | grep -w 'inet' | awk -F ' ' '{print $2}' | grep -vE '127\.[0-255]\.[0-255]\.[0-255]' | tr ' ' '\n' | grep '^')
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # get variables from host
-SET_RANDOM_PORT="$(__rport)"
-SET_RANDOM_PASS="$(__password)"
-SET_LOCAL_HOSTNAME="$(__host_name)"
-SET_LOCAL_DOMAINNAME="$(__domain_name)"
-SET_LONG_HOSTNAME=""$(hostname -f 2>/dev/null | grep '^')
-SET_SHORT_HOSTNAME="$(hostname -s 2>/dev/null | grep '^')"
-SET_DOMAIN_NAME="$(hostname -d 2>/dev/null | grep '^' || echo 'home')"
+SET_RANDOM_PORT=$(__rport)
+SET_RANDOM_PASS=$(__password)
+SET_LOCAL_HOSTNAME=$(__host_name)
+SET_LOCAL_DOMAINNAME=$(__domain_name)
+SET_LONG_HOSTNAME=$(hostname -f 2>/dev/null | grep '^')
+SET_SHORT_HOSTNAME=$(hostname -s 2>/dev/null | grep '^')
+SET_DOMAIN_NAME=$(hostname -d 2>/dev/null | grep '^' || echo 'home')
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define folders
 HOST_DATA_DIR="$DATADIR/data"
@@ -194,22 +194,22 @@ CONTAINER_SSL_KEY="${CONTAINER_SSL_KEY:-$CONTAINER_SSL_DIR/localhost.key}"
 CONTAINER_TIMEZONE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get username and password from env if variables exist [username] [pass,random]
-REGISTRY_USERNAME="${REGISTRY_USERNAME:-$DEFAULT_USERNAME}"
-REGISTRY_PASSWORD="${REGISTRY_PASSWORD:-$DEFAULT_PASSWORD}"
+GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME="${GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME:-$DEFAULT_USERNAME}"
+GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD="${GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD:-$DEFAULT_PASSWORD}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # URL to container image - docker pull [URL]
-HUB_IMAGE_URL="casjaysdevdocker/registry"
+HUB_IMAGE_URL="casjaysdevdocker/GEN_SCRIPT_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # image tag [docker pull HUB_IMAGE_URL:tag]
 HUB_IMAGE_TAG="latest"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set the container name Default: [casjaysdevdocker/registry-$HUB_IMAGE_TAG]
+# Set the container name Default: [casjaysdevdocker/GEN_SCRIPT_REPLACE_APPNAME-$HUB_IMAGE_TAG]
 CONTAINER_NAME=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container user and group ID [yes/no] [id]
-USER_ID_ENABLED="yes"
-CONTAINER_USER_ID="1000"
-CONTAINER_GROUP_ID="1000"
+USER_ID_ENABLED="no"
+CONTAINER_USER_ID=""
+CONTAINER_GROUP_ID=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable privileged container [ yes/no ]
 CONTAINER_PRIVILEGED_ENABLED="yes"
@@ -228,24 +228,29 @@ CONTAINER_TTY_ENABLED="yes"
 CONTAINER_INTERACTIVE_ENABLED="no"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable cgroups [yes/no]
-CGROUPS_ENABLED="yes"
+CGROUPS_ENABLED="no"
 CGROUPS_MOUNTS="/sys/fs/cgroup:/sys/fs/cgroup:ro"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set location to resolv.conf [yes/no]
-HOST_RESOLVE_ENABLED="yes"
+HOST_RESOLVE_ENABLED="no"
 HOST_RESOLVE_FILE="/etc/resolv.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker socket [pathToSocket]
-DOCKER_SOCKET_ENABLED="yes"
+DOCKER_SOCKET_ENABLED="no"
 DOCKER_SOCKET_MOUNT="/var/run/docker.sock"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker config [~/.docker/config.json]
-DOCKER_CONFIG_ENABLED="yes"
+DOCKER_CONFIG_ENABLED="no"
 HOST_DOCKER_CONFIG="$HOME/.docker/config.json"
 CONTAINER_DOCKER_CONFIG_FILE="/root/.docker/config.json"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Mount soundcard [/dev/snd]
+DOCKER_SOUND_ENABLED="no"
+HOST_SOUND_CONFIG="/dev/snd"
+CONTAINER_SOUND_CONFIG_FILE="/dev/snd"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable display in container
-CONTAINER_X11_ENABLED="yes"
+CONTAINER_X11_ENABLED="no"
 HOST_X11_DISPLAY=""
 HOST_X11_SOCKET="/tmp/.X11-unix"
 HOST_X11_XAUTH="$HOME/.Xauthority"
@@ -255,46 +260,45 @@ CONTAINER_X11_XAUTH="/home/x11user/.Xauthority"
 # Enable hosts /etc/hosts file [yes/no]
 HOST_ETC_HOSTS_ENABLED="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set container hostname and domain - Default: registry
+# Set container hostname and domain - Default: GEN_SCRIPT_REPLACE_APPNAME
 CONTAINER_HOSTNAME=""
 CONTAINER_DOMAINNAME=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set the network type - default is bridge [bridge/host]
-HOST_DOCKER_NETWORK="bridge"
+HOST_DOCKER_NETWORK=bridge
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set listen type - Default default all [all/local/lan/docker/public]
-HOST_NETWORK_ADDR="all"
-HOST_NETWORK_LOCAL_ADDR="127.0.0.1"
+HOST_NETWORK_ADDR=all
+HOST_NETWORK_LOCAL_ADDR=127.0.0.1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to 0.0.0.0 to listen on all
-HOST_DEFINE_LISTEN="0.0.0.0"
+HOST_DEFINE_LISTEN=0.0.0.0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup nginx proxy variables [yes,no]
-HOST_NGINX_ENABLED="yes"
-HOST_NGINX_SSL_ENABLED="yes"
-HOST_NGINX_HTTP_PORT="80"
-HOST_NGINX_HTTPS_PORT="443"
-HOST_NGINX_UPDATE_CONF="yes"
+HOST_NGINX_ENABLED=yes
+HOST_NGINX_SSL_ENABLED=yes
+HOST_NGINX_HTTP_PORT=80
+HOST_NGINX_HTTPS_PORT=443
+HOST_NGINX_UPDATE_CONF=yes
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver [yes/no] [yes/no] [internalPort,otherPort]
-CONTAINER_WEB_SERVER_ENABLED="yes"
+CONTAINER_WEB_SERVER_ENABLED="no"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000"
+CONTAINER_WEB_SERVER_PORT="80"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or HOST_NETWORK_ADDR=local
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
-CONTAINER_HTTP_PORT="12000,12001 "
+CONTAINER_HTTP_PORT=""
 CONTAINER_HTTPS_PORT=""
-CONTAINER_SERVICE_PORT="3309,12002 "
-CONTAINER_ADD_CUSTOM_PORT="12000 "
-CONTAINER_ADD_CUSTOM_PORT+=""
+CONTAINER_SERVICE_PORT=""
+CONTAINER_ADD_CUSTOM_PORT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
-CONTAINER_ADD_CUSTOM_LISTEN="$SET_LOCAL_IP:1920:1999/tcp,$SET_LOCAL_IP:1920:1989,$SET_LOCAL_IP:1920 "
+CONTAINER_ADD_CUSTOM_LISTEN=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
 CONTAINER_LINK=""
@@ -304,7 +308,7 @@ CONTAINER_MOUNTS="$LOCAL_CONFIG_DIR:/config:z,$LOCAL_DATA_DIR:/data:z,"
 CONTAINER_MOUNTS+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional devices [/dev:/dev,/otherdev:/otherdev]
-CONTAINER_DEVICES="/dev/snd"
+CONTAINER_DEVICES=""
 CONTAINER_DEVICES+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define additional variables [myvar=var,myothervar=othervar]
@@ -326,8 +330,8 @@ CONTAINER_LABELS+=""
 # Set container username and password and the env name [CONTAINER_ENV_USER_NAME=CONTAINER_USER_NAME] - [password=pass]
 CONTAINER_ENV_USER_NAME=""
 CONTAINER_ENV_PASS_NAME=""
-CONTAINER_USER_NAME="${REGISTRY_USERNAME:-}"
-CONTAINER_USER_PASS="${REGISTRY_PASSWORD:-}"
+CONTAINER_USER_NAME="${GEN_SCRIPT_REPLACE_APPENV_NAME_USERNAME:-}"
+CONTAINER_USER_PASS="${GEN_SCRIPT_REPLACE_APPENV_NAME_PASSWORD:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify container arguments - will run in container [/path/to/script]
 CONTAINER_COMMANDS=""
@@ -643,7 +647,7 @@ if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
   for set_port in $CONTAINER_ADD_CUSTOM_LISTEN; do
     port=$set_port
     if [ "$port" != " " ] && [ -n "$port" ]; then
-      echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
+      echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
       DOCKER_SET_TMP_PUBLISH+=("--publish $port")
     fi
   done
