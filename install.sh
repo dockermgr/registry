@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302272131-git
+##@Version           :  202302272147-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 21:31 EST
+# @@Created          :  Monday, Feb 27, 2023 21:47 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302272131-git"
+VERSION="202302272147-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -54,8 +54,8 @@ fi
 scripts_check
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define extra functions
-__port() { echo "$((50000 + $RANDOM % 1000))"; }
 __sudo() { sudo -n true && eval sudo "$*" || eval "$*" || return 1; }
+__port() { echo "$((50000 + $RANDOM % 1000))" | grep '^' || return 1; }
 __docker_check() { [ -n "$(type -p docker 2>/dev/null)" ] || return 1; }
 __route() { [ -n "$(type -P ip)" ] && eval ip route 2>/dev/null || return 1; }
 __sudo_root() { sudo -n true && ask_for_password true && eval sudo "$*" || return 1; }
@@ -67,10 +67,10 @@ __ssl_certs() { [ -f "$HOST_SSL_CA" ] && [ -f "$HOST_SSL_CRT" ] && [ -f "$HOST_S
 __host_name() { hostname -f 2>/dev/null | grep '\.' | grep '^' || hostname -f 2>/dev/null | grep '^' || echo "$HOSTNAME"; }
 __docker_init() { [ -n "$(type -p dockermgr 2>/dev/null)" ] && dockermgr init || printf_exit "Failed to Initialize the docker installer"; }
 __domain_name() { hostname -f 2>/dev/null | awk -F '.' '{print $(NF-1)"."$NF}' | grep '\.' | grep '^' || hostname -f 2>/dev/null | grep '^' || return 1; }
-__port_in_use() { { [ -d "/etc/nginx/vhosts.d" ] && grep -wRsq "${1:-$CONTAINER_HTTP_PORT}" "/etc/nginx/vhosts.d" || netstat -taupln 2>/dev/null | grep -q "${1:-$CONTAINER_HTTP_PORT}"; } && return 1 || return 0; }
+__port_in_use() { { [ -d "/etc/nginx/vhosts.d" ] && grep -wRsq "${1:-443}" "/etc/nginx/vhosts.d" || netstat -taupln 2>/dev/null | grep '[0-9]:[0-9]' | grep 'LISTEN' | grep -q "${1:-443}"; } && return 1 || return 0; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __public_ip() { curl -q -LSsf "http://ifconfig.co" | grep '^'; }
-__docker_gateway_ip() { sudo docker network inspect -f '{{json .IPAM.Config}}' bridge | jq -r '.[].Gateway' | grep '^' || echo '172.17.0.1'; }
+__docker_gateway_ip() { sudo docker network inspect -f '{{json .IPAM.Config}}' bridge | jq -r '.[].Gateway' | grep -v '^$' | grep '^' || echo '172.17.0.1'; }
 __local_lan_ip() { [ -n "$SET_LOCAL_IP" ] && { echo "$SET_LOCAL_IP" | grep -E '192\.168\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '10\.[0-255]\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '172\.[16-31]\.[0-255]\.[0-255]' 2>/dev/null; } || echo "$CURRENT_IP_4"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rport() {
@@ -80,7 +80,7 @@ __rport() {
     { [ $port -lt 50000 ] && [ $port -gt 50999 ]; } && port="$(__port)"
     __port_in_use "$port" && break
   done
-  echo "$port"
+  echo "$port" | head -n1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define any pre-install scripts
@@ -266,10 +266,10 @@ HOST_NGINX_HTTPS_PORT="443"
 HOST_NGINX_UPDATE_CONF="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver [yes/no] [yes/no] [internalPort,otherPort]
-CONTAINER_WEB_SERVER_ENABLED="yes"
+CONTAINER_WEB_SERVER_ENABLED="no"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000,5001"
+CONTAINER_WEB_SERVER_PORT="80"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
@@ -403,13 +403,6 @@ IS_PRIVATE="${CONTAINER_WEB_SERVER_PORT:-$CONTAINER_SERVICE_PORT}"
 CLEANUP_PORT="${HOST_SERVICE_PORT:-$IS_PRIVATE}"
 CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
 PRETTY_PORT="$CLEANUP_PORT"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if echo "$PRETTY_PORT" | grep -q ':.*.:'; then
-  NGINX_PROXY_PORT="$(echo "$PRETTY_PORT" | grep ':.*.:' | awk -F':' '{print $2}' | grep '^')"
-else
-  NGINX_PROXY_PORT="$(echo "$PRETTY_PORT" | grep -v ':.*.:' | awk -F':' '{print $2}' | grep '^')"
-fi
-[ -n "$NGINX_PROXY_PORT" ] || NGINX_PROXY_PORT="$CLEANUP_PORT"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Docker arguments from env
 [ -n "$DOCKER_CUSTOM_ARGUMENTS" ] && DOCKER_CUSTOM_ARGUMENTS+="${DOCKER_CUSTOM_ARGUMENTS//,/ } "
@@ -581,7 +574,7 @@ for port in $SET_SERVER_PORTS; do
   if [ "$port" != " " ] && [ -n "$port" ]; then
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
-      ADDR="$CONTAINER_LISTEN"
+      ADDR="127.0.0.2"
       DOCKER_SET_PUBLISH+="--publish $ADDR:$port "
     elif [ -n "$SET_LISTEN" ]; then
       DOCKER_SET_PUBLISH+="--publish $SET_LISTEN$port "
@@ -593,39 +586,44 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//,/ }"
 if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
-  for list in $CONTAINER_ADD_CUSTOM_LISTEN; do
-    if [ "$list" != " " ] && [ -n "$list" ]; then
-      echo "$list" | grep -q ':' || list="${list//\/*/}:$list"
-      DOCKER_SET_PUBLISH+="--publish $list "
+  for port in $CONTAINER_ADD_CUSTOM_LISTEN; do
+    if [ "$port" != " " ] && [ -n "$port" ]; then
+      echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
+      DOCKER_SET_PUBLISH+="--publish $port "
     fi
   done
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # container web server configuration
 if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
+  SET_WEB_PORT=""
   CONTAINER_WEB_SERVER_IP="$(__docker_gateway_ip)"
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
-  for web_ports in $CONTAINER_WEB_SERVER_PORT; do
-    if [ "$web_ports" != " " ] && [ -n "$web_ports" ]; then
-      echo "$web_ports" | grep -q ':' || web_ports="${web_ports//\/*/}:$web_ports"
+  for port in $CONTAINER_WEB_SERVER_PORT; do
+    if [ "$port" != " " ] && [ -n "$port" ]; then
       RANDOM_PORT="$(__rport)"
-      SET_WEB_PORT+="$CONTAINER_WEB_SERVER_IP:$RANDOM_PORT "
-      TYPE="$(echo "$web_ports" | awk -F '/' '{print $NF}' | grep '^' || echo '')"
-      if [ -n "$TYPE" ]; then
-        SET_WEB_SERVER_PORTS+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$web_ports/$TYPE "
+      TYPE="$(echo "$port" | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
+      if [ -z "$TYPE" ]; then
+        DOCKER_SET_PUBLISH+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port "
       else
-        SET_WEB_SERVER_PORTS+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$web_ports "
+        DOCKER_SET_PUBLISH+="--publish $CONTAINER_WEB_SERVER_IP:$RANDOM_PORT:$port/$TYPE "
       fi
+      SET_WEB_PORT+="$CONTAINER_WEB_SERVER_IP:$RANDOM_PORT "
     fi
   done
   [ "$CONTAINER_WEB_SERVER_SSL_ENABLED" = "yes" ] && CONTAINER_HTTP_PROTO="https" || CONTAINER_HTTP_PROTO="http"
-  NGINX_PROXY_PORT="$(echo "$SET_WEB_SERVER_PORTS" | tr ' ' '\n' | sed 's|--publish ||g' | awk -F':' '{print $1":"$2}' | awk -F ':' '{print $1":"$2}' | head -n1)"
-  CLEANUP_PORT="$NGINX_PROXY_PORT"
-  CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
-  PRETTY_PORT="$CLEANUP_PORT"
-  NGINX_PROXY_PORT="$PRETTY_PORT"
-  DOCKER_SET_PUBLISH+="$SET_WEB_SERVER_PORTS "
+  [ -n "$SET_WEB_PORT" ] && SET_NGINX_PROXY_PORT="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v '^$' | sed 's|--publish||g' | awk -F':' '{print $1":"$2}' | sort -u | tr '\n' ' ' | head -n1 | grep '^')"
+  [ -n "$SET_WEB_PORT" ] && CLEANUP_PORT="$SET_NGINX_PROXY_PORT" CLEANUP_PORT="${CLEANUP_PORT//\/*/}"
+  [ -n "$SET_WEB_PORT" ] && PRETTY_PORT="$CLEANUP_PORT" NGINX_PROXY_PORT="$PRETTY_PORT"
+  [ -n "$SET_NGINX_PROXY_PORT" ] && NGINX_PROXY_PORT="$SET_NGINX_PROXY_PORT"
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if echo "$PRETTY_PORT" | grep -q ':.*.:'; then
+  NGINX_PROXY_PORT="$(echo "$PRETTY_PORT" | grep ':.*.:' | awk -F':' '{print $2}' | grep '^')"
+else
+  NGINX_PROXY_PORT="$(echo "$PRETTY_PORT" | grep -v ':.*.:' | awk -F':' '{print $2}' | grep '^')"
+fi
+[ -n "$NGINX_PROXY_PORT" ] || NGINX_PROXY_PORT="$CLEANUP_PORT"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SSL setup
 NGINX_PROXY_URL=""
@@ -676,19 +674,27 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set temp env for PORTS ENV variable
 DOCKER_SET_PORTS_ENV_TMP=""
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}')"
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}')"
-DOCKER_SET_PORTS_ENV_TMP+="$(echo "$DOCKER_SET_PORTS_ENV_TMP" | tr ' ' '\n' | sort -u | grep '.*[0-9]:[0-9]*.' | sed 's|/.*||g' | tr '\n' ',' | grep '^' || echo '')"
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep ':.*.:' | awk -F ':' '{print $1":"$3}' | tr '\n' ',' | grep '^')"
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$SET_WEB_PORT" | tr ' ' '\n' | grep -v ':.*.:' | awk -F ':' '{print $1":"$2}' | tr '\n' ',' | grep '^')"
+DOCKER_SET_PORTS_ENV_TMP+="$(echo "$DOCKER_SET_PORTS_ENV_TMP" | tr ' ' '\n' | grep '[0-9]:[0-9]' | sort -u | sed 's|/.*||g' grep -v '^$' | tr '\n' ',' | grep '^' || echo '')"
 DOCKER_SET_PORTS_ENV="${DOCKER_SET_PORTS_ENV_TMP//,/ }" DOCKER_SET_PORTS_ENV_TMP=""
 [ -n "$DOCKER_SET_PORTS_ENV" ] && DOCKER_SET_OPTIONS+="--env ENV_PORTS=\"$DOCKER_SET_PORTS_ENV\""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-HUB_IMAGE_URL="${HUB_IMAGE_URL:-}" HUB_IMAGE_TAG="${HUB_IMAGE_TAG:-}" DOCKER_SET_CAP="${DOCKER_SET_CAP:-}"
-DOCKER_SET_ENV="${DOCKER_SET_ENV:-}" DOCKER_SET_DEV="${DOCKER_SET_DEV:-}" DOCKER_SET_MNT="${DOCKER_SET_MNT:-}"
-DOCKER_SET_LINK="${DOCKER_SET_LINK:-}" DOCKER_SET_LABELS="${DOCKER_SET_LABELS:-}" DOCKER_SET_SYSCTL="${DOCKER_SET_SYSCTL:-}"
-DOCKER_SET_PUBLISH="${DOCKER_SET_PUBLISH:-}" DOCKER_SET_OPTIONS="${DOCKER_SET_OPTIONS:-}" CONTAINER_COMMANDS="${CONTAINER_COMMANDS:-}"
+HUB_IMAGE_URL="${HUB_IMAGE_URL:-}"
+HUB_IMAGE_TAG="${HUB_IMAGE_TAG:-}"
+DOCKER_SET_CAP="${DOCKER_SET_CAP:-}"
+DOCKER_SET_ENV="${DOCKER_SET_ENV:-}"
+DOCKER_SET_DEV="${DOCKER_SET_DEV:-}"
+DOCKER_SET_MNT="${DOCKER_SET_MNT:-}"
+DOCKER_SET_LINK="${DOCKER_SET_LINK:-}"
+DOCKER_SET_LABELS="${DOCKER_SET_LABELS:-}"
+DOCKER_SET_SYSCTL="${DOCKER_SET_SYSCTL:-}"
+DOCKER_SET_OPTIONS="${DOCKER_SET_OPTIONS:-}"
+CONTAINER_COMMANDS="${CONTAINER_COMMANDS:-}"
+DOCKER_SET_PUBLISH="$(echo "${DOCKER_SET_PUBLISH:-}" | tr ' ' '\n' | sort -u | grep -v '^$' | grep '[0-9]' | grep -v '::.*' | tr '\n' ' ' | grep '^')"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
-EXECUTE_DOCKER_CMD="docker run -d  $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_ENV $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="${EXECUTE_DOCKER_CMD//  / }"
 if cmd_exists docker-compose && [ -f "$INSTDIR/docker-compose.yml" ]; then
   printf_yellow "Installing containers using docker-compose"
@@ -710,7 +716,14 @@ if [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
   __sudo docker pull "$HUB_IMAGE_URL" 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"
   printf_cyan "Creating container $CONTAINER_NAME"
   if [ "$EXECUTE_DOCKER_ENABLE" = "yes" ]; then
-    printf '#!/usr/bin/env bash\n\n%s\n%s\n\n' "$EXECUTE_PRE_INSTALL" "$EXECUTE_DOCKER_CMD" >"$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
+    cat <<EOF >"$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
+#!/usr/bin/env bash
+# Install script for $CONTAINER_NAME
+
+$EXECUTE_PRE_INSTALL
+$EXECUTE_DOCKER_CMD
+
+EOF
     [ -f "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME" ] && chmod -Rf 755 "$DOCKERMGR_CONFIG_DIR/scripts/$CONTAINER_NAME"
   fi
   if __sudo $EXECUTE_DOCKER_SCRIPT 1>/dev/null 2>"${TMP:-/tmp}/$APPNAME.err.log"; then
