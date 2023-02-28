@@ -511,14 +511,14 @@ EOF
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_LINK="" CONTAINER_LINK="${CONTAINER_LINK//,/ }"
-for link in $CONTAINER_LINK; do
+for link in "${CONTAINER_LINK[@]}"; do
   if [ "$link" != "" ] && [ "$link" != " " ]; then
     DOCKER_SET_LINK+="--link $link "
   fi
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_LABELS="" CONTAINER_LABELS="${CONTAINER_LABELS//,/ }"
-for label in $CONTAINER_LABELS; do
+for label in "${CONTAINER_LABELS[@]}"; do
   if [ "$label" != "" ] && [ "$label" != " " ]; then
     DOCKER_SET_LABELS+="--label $label "
   fi
@@ -526,7 +526,7 @@ done
 CONTAINER_LABELS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_CAP="" CONTAINER_CAPABILITIES="${CONTAINER_CAPABILITIES//,/ }"
-for cap in $CONTAINER_CAPABILITIES; do
+for cap in "${CONTAINER_CAPABILITIES[@]}"; do
   if [ "$cap" != "" ] && [ "$cap" != " " ]; then
     DOCKER_SET_CAP+="--cap-add $cap "
   fi
@@ -534,7 +534,7 @@ done
 CONTAINER_CAPABILITIES=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_SYSCTL="" CONTAINER_SYSCTL="${CONTAINER_SYSCTL//,/ }"
-for sysctl in $CONTAINER_SYSCTL; do
+for sysctl in "${CONTAINER_SYSCTL[@]}"; do
   if [ "$sysctl" != "" ] && [ "$sysctl" != " " ]; then
     DOCKER_SET_SYSCTL+="--sysctl $sysctl "
   fi
@@ -543,7 +543,7 @@ CONTAINER_SYSCTL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_ENV1="" CONTAINER_OPT_ENV_VAR="${SET_CONTAINER_OPT_ENV_VAR//,/ }"
 if [ -n "$OPT_ENV_VAR" ]; then
-  for env in $OPT_ENV_VAR; do
+  for env in "${OPT_ENV_VAR[@]}"; do
     if [ "$env" != "" ] && [ "$env" != " " ]; then
       DOCKER_SET_ENV1+="--env $env "
     fi
@@ -552,7 +552,7 @@ fi
 CONTAINER_OPT_ENV_VAR=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_ENV2="" CONTAINER_ENV="${ADDITION_ENV//,/ }"
-for env in $ADDITION_ENV; do
+for env in "${ADDITION_ENV[@]}"; do
   if [ "$env" != "" ] && [ "$env" != " " ]; then
     DOCKER_SET_ENV2+="--env $env "
   fi
@@ -561,7 +561,7 @@ CONTAINER_ENV=""
 DOCKER_SET_ENV="$DOCKER_SET_ENV1 $DOCKER_SET_ENV2"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_DEV="" CONTAINER_DEVICES="${CONTAINER_DEVICES//,/ }"
-for dev in $CONTAINER_DEVICES; do
+for dev in "${CONTAINER_DEVICES[@]}"; do
   if [ "$dev" != "" ] && [ "$dev" != " " ]; then
     echo "$dev" | grep -q ':' || dev="$dev:$dev"
     DOCKER_SET_DEV+="--device $dev "
@@ -570,7 +570,7 @@ done
 CONTAINER_DEVICES=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DOCKER_SET_MNT="" CONTAINER_MOUNTS="${CONTAINER_MOUNTS//,/ }"
-for mnt in $CONTAINER_MOUNTS; do
+for mnt in "${CONTAINER_MOUNTS[@]}"; do
   if [ "$mnt" != "" ] && [ "$mnt" != " " ]; then
     echo "$mnt" | grep -q ':' || port="$mnt:$mnt"
     DOCKER_SET_MNT+="--volume $mnt "
@@ -580,7 +580,7 @@ CONTAINER_MOUNTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//,/ }" SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
 if [ -n "$CONTAINER_OPT_PORT_VAR" ]; then
-  for port in $CONTAINER_OPT_PORT_VAR; do
+  for port in "${CONTAINER_OPT_PORT_VAR[@]}"; do
     if [ "$port" != "" ] && [ "$port" != " " ]; then
       echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
       DOCKER_SET_PUBLISH+="--publish $port "
@@ -590,7 +590,8 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SET_SERVER_PORTS="$CONTAINER_HTTP_PORT $CONTAINER_HTTPS_PORT $CONTAINER_SERVICE_PORT $CONTAINER_ADD_CUSTOM_PORT"
 SET_SERVER_PORTS="${SET_SERVER_PORTS//,/ }" SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
-for port in $SET_SERVER_PORTS; do
+SET_LISTEN="${SET_LISTEN// /}"
+for port in "${SET_SERVER_PORTS[@]}"; do
   if [ "$port" != " " ] && [ -n "$port" ]; then
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
@@ -606,7 +607,7 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//,/ }"
 if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
-  for port in $CONTAINER_ADD_CUSTOM_LISTEN; do
+  for port in "${CONTAINER_ADD_CUSTOM_LISTEN[@]}"; do
     if [ "$port" != " " ] && [ -n "$port" ]; then
       echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
       DOCKER_SET_PUBLISH+="--publish $port "
@@ -619,7 +620,7 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   SET_WEB_PORT=""
   CONTAINER_WEB_SERVER_IP="$HOST_NETWORK_LOCAL_ADDR"
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
-  for port in $CONTAINER_WEB_SERVER_PORT; do
+  for port in "${CONTAINER_WEB_SERVER_PORT[@]}"; do
     if [ "$port" != " " ] && [ -n "$port" ]; then
       RANDOM_PORT="$(__rport)"
       TYPE="$(echo "$port" | grep '/' | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
@@ -683,13 +684,13 @@ fi
 # Copy over data files - keep the same stucture as -v dataDir/mnt:/mount
 if [ -d "$INSTDIR/rootfs" ] && [ ! -f "$DATADIR/.installed" ]; then
   printf_yellow "Copying files to $DATADIR"
-  cp -Rf "$INSTDIR/rootfs/." "$DATADIR/" &>/dev/null
+  sudo -HE cp -Rf "$INSTDIR/rootfs/." "$DATADIR/" &>/dev/null
   find "$DATADIR" -name ".gitkeep" -type f -exec rm -rf {} \; &>/dev/null
 fi
 if [ -f "$DATADIR/.installed" ]; then
-  date +'Updated on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
+  sudo -HE date +'Updated on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
 else
-  date +'installed on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
+  sudo -HE date +'installed on %Y-%m-%d at %H:%M' >"$DATADIR/.installed" 2>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set temp env for PORTS ENV variable
@@ -701,18 +702,18 @@ DOCKER_SET_PORTS_ENV="$(__trim "${DOCKER_SET_PORTS_ENV_TMP//,/ }")"
 [ -n "$DOCKER_SET_PORTS_ENV" ] && DOCKER_SET_OPTIONS+="--env ENV_PORTS=\"${DOCKER_SET_PORTS_ENV//: /}\""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-HUB_IMAGE_URL="$(__trim "${HUB_IMAGE_URL:-}")"
-HUB_IMAGE_TAG="$(__trim "${HUB_IMAGE_TAG:-}")"
-DOCKER_SET_CAP="$(__trim "${DOCKER_SET_CAP:-}")"
-DOCKER_SET_ENV="$(__trim "${DOCKER_SET_ENV:-}")"
-DOCKER_SET_DEV="$(__trim "${DOCKER_SET_DEV:-}")"
-DOCKER_SET_MNT="$(__trim "${DOCKER_SET_MNT:-}")"
-DOCKER_SET_LINK="$(__trim "${DOCKER_SET_LINK:-}")"
-DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS:-}")"
-DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL:-}")"
-DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS:-}")"
-CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS:-}")"
-DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH:-}")"
+HUB_IMAGE_URL="$(__trim "${HUB_IMAGE_URL[@]:-}")"
+HUB_IMAGE_TAG="$(__trim "${HUB_IMAGE_TAG[@]:-}")"
+DOCKER_SET_CAP="$(__trim "${DOCKER_SET_CAP[@]:-}")"
+DOCKER_SET_ENV="$(__trim "${DOCKER_SET_ENV[@]:-}")"
+DOCKER_SET_DEV="$(__trim "${DOCKER_SET_DEV[@]:-}")"
+DOCKER_SET_MNT="$(__trim "${DOCKER_SET_MNT[@]:-}")"
+DOCKER_SET_LINK="$(__trim "${DOCKER_SET_LINK[@]:-}")"
+DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS[@]:-}")"
+DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL[@]:-}")"
+DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS[@]:-}")"
+CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS[@]:-}")"
+DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_PUBLISH[@]:-}")"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_ENV $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="$(__trim "$EXECUTE_DOCKER_CMD")"
