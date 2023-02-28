@@ -280,21 +280,21 @@ HOST_NGINX_UPDATE_CONF="yes"
 CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000"
+CONTAINER_WEB_SERVER_PORT="5000 "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [port] or [port:port] - LISTEN will be added if defined [HOST_DEFINE_LISTEN] or HOST_NETWORK_ADDR=local
 # Only ONE of HTTP or HTTPS if web server or SERVICE port for mysql/pgsql/ftp/pgsql. add more to CONTAINER_ADD_CUSTOM_PORT
-CONTAINER_HTTP_PORT=""
-CONTAINER_HTTPS_PORT=""
+CONTAINER_HTTP_PORT=" "
+CONTAINER_HTTPS_PORT=" "
 CONTAINER_SERVICE_PORT="5001"
-CONTAINER_ADD_CUSTOM_PORT="5002,5010"
-CONTAINER_ADD_CUSTOM_PORT+="10000,10001"
+CONTAINER_ADD_CUSTOM_PORT="5002,5010 "
+CONTAINER_ADD_CUSTOM_PORT+="10000,10001 "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add service port [listen:externalPort:internalPort/tcp,udp]
-CONTAINER_ADD_CUSTOM_LISTEN="$HOST_DOCKER_NETWORK:6002:10100,$HOST_DOCKER_NETWORK:6006:20000,"
+CONTAINER_ADD_CUSTOM_LISTEN="$SET_LOCAL_IP:6002:10100,$SET_LOCAL_IP:6006:20000 "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set links between containers [containerName]
 CONTAINER_LINK="tor"
