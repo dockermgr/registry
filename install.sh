@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202302272232-git
+##@Version           :  202302272238-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.com
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2023 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Feb 27, 2023 22:32 EST
+# @@Created          :  Monday, Feb 27, 2023 22:38 EST
 # @@File             :  install.sh
 # @@Description      :  Container installer script for registry
 # @@Changelog        :  New script
@@ -19,7 +19,7 @@
 # @@Template         :  installers/dockermgr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="registry"
-VERSION="202302272232-git"
+VERSION="202302272238-git"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
 RUN_USER="${SUDO_USER:-$USER}"
@@ -269,7 +269,7 @@ HOST_NGINX_UPDATE_CONF="yes"
 CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="5000"
+CONTAINER_WEB_SERVER_PORT="5000,5001"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
@@ -804,17 +804,9 @@ if docker ps -a | grep -qs "$APPNAME"; then
         set_listen="$(echo "$service" | tr ' ' '\n' | grep ':.*.*:' | awk -F ':' '{print $1":"$2}' | grep '^' || echo "$service")"
         set_listen="$set_listen $(echo "$service" | tr ' ' '\n' | grep -v ':.*.*:' | awk -F ':' '{print $1":"$2}' | grep '^' || echo "$service")"
         listen="${set_listen//0.0.0.0/$SET_ADDR}"
-        [ -z "$listen" ] || printf_blue "$service is running on: $listen"
+        [ -z "$listen" ] || printf_blue "$set_service is running on: $listen"
       fi
     done
-    if [ "$service" != "--publish" ] && [ "$service" != " " ] && [ -n "$service" ]; then
-      service="${service//\/*/}"
-      set_service="$(echo "$service" | tr ' ' '\n' | awk -F ':' '{$NF}' | grep '^' || echo "$service")"
-      set_listen="$(echo "$service" | tr ' ' '\n' | grep ':.*.*:' | awk -F ':' '{print $1":"$2}' | grep '^' || echo "$service")"
-      set_listen="$set_listen $(echo "$service" | tr ' ' '\n' | grep -v ':.*.*:' | awk -F ':' '{print $1":"$2}' | grep '^' || echo "$service")"
-      listen="${set_listen//0.0.0.0/$SET_ADDR}"
-      [ -z "$listen" ] || printf_blue "$service is running on: $listen"
-    fi
   fi
   [ -z "$SET_USER_NAME" ] || printf_cyan "Username is:  $SET_USER_NAME"
   [ -z "$SET_USER_PASS" ] || printf_purple "Password is:  $SET_USER_PASS"
