@@ -588,13 +588,14 @@ CONTAINER_MOUNTS=""
 CONTAINER_OPT_PORT_VAR="${CONTAINER_OPT_PORT_VAR//,/ }"
 SET_LISTEN="${HOST_DEFINE_LISTEN//:*/}"
 if [ -n "$CONTAINER_OPT_PORT_VAR" ]; then
-  for port in $CONTAINER_OPT_PORT_VAR; do
-    if [ "$port" != "" ] && [ "$port" != " " ]; then
-      port="${port// /}"
+  for set_port in $CONTAINER_OPT_PORT_VAR; do
+    if [ "$set_port" != "" ] && [ "$set_port" != " " ]; then
+      port=$set_port
       echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
       DOCKER_SET_TMP_PUBLISH+=("--publish $port")
     fi
   done
+  set_port=""
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SET_SERVER_PORTS_TMP="${CONTAINER_HTTP_PORT//,/ }"
@@ -603,9 +604,9 @@ SET_SERVER_PORTS_TMP+="${CONTAINER_SERVICE_PORT//,/ }"
 SET_SERVER_PORTS_TMP+="${CONTAINER_ADD_CUSTOM_PORT//,/ }"
 SET_SERVER_PORTS="${SET_SERVER_PORTS_TMP//  / }"
 SET_LISTEN=${HOST_DEFINE_LISTEN//:*/}
-for port in "${SET_SERVER_PORTS[@]}"; do
-  if [ "$port" != " " ] && [ -n "$port" ]; then
-    port="${port// /}"
+for set_port in $SET_SERVER_PORTS; do
+  if [ "$set_port" != " " ] && [ -n "$set_port" ]; then
+    port=$set_port
     echo "$port" | grep -q ':' || port="${port//\/*/}:$port"
     if [ "$CONTAINER_PRIVATE" = "yes" ] && [ "$port" = "${IS_PRIVATE//\/*/}" ]; then
       ADDR="${HOST_NETWORK_LOCAL_ADDR:-127.0.0.1}"
@@ -620,8 +621,8 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_ADD_CUSTOM_LISTEN="${CONTAINER_ADD_CUSTOM_LISTEN//,/ }"
 if [ -n "$CONTAINER_ADD_CUSTOM_LISTEN" ]; then
-  for port in $CONTAINER_ADD_CUSTOM_LISTEN; do
-    port="${port// /}"
+  for set_port in $CONTAINER_ADD_CUSTOM_LISTEN; do
+    port=$set_port
     if [ "$port" != " " ] && [ -n "$port" ]; then
       echo "$port" | grep -q ':' || port="${list//\/*/}:$port"
       DOCKER_SET_TMP_PUBLISH+=("--publish $port")
@@ -634,9 +635,9 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ]; then
   SET_WEB_PORT=""
   CONTAINER_WEB_SERVER_IP=$HOST_NETWORK_LOCAL_ADDR
   CONTAINER_WEB_SERVER_PORT="${CONTAINER_WEB_SERVER_PORT//,/ }"
-  for port in $CONTAINER_WEB_SERVER_PORT; do
-    if [ "$port" != " " ] && [ -n "$port" ]; then
-      port="${port// /}"
+  for set_port in $CONTAINER_WEB_SERVER_PORT; do
+    if [ "$set_port" != " " ] && [ -n "$set_port" ]; then
+      port=$set_port
       RANDOM_PORT="$(__rport)"
       TYPE="$(echo "$port" | grep '/' | awk -F '/' '{print $NF}' | head -n1 | grep '^' || echo '')"
       if [ -z "$TYPE" ]; then
@@ -828,7 +829,7 @@ dockermgr_install_version
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run exit function
 SET_ADDR="${HOST_LISTEN_ADDR//:*/}"
-SET_PORT="${DOCKER_SET_PUBLISH//--publish/ }"
+SET_PORT="${DOCKER_SET_PUBLISH//--publish /}"
 if docker ps -a | grep -qs "$CONTAINER_NAME"; then
   printf_yellow "The DATADIR is in $DATADIR"
   printf_cyan "$APPNAME has been installed to $INSTDIR"
