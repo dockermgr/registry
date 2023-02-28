@@ -380,9 +380,6 @@ mkdir -p "$LOCAL_CONFIG_DIR"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/env"
 mkdir -p "$DOCKERMGR_CONFIG_DIR/scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-CONTAINER_HTTP_PORT=" " CONTAINER_HTTPS_PORT=" "
-CONTAINER_SERVICE_PORT=" " CONTAINER_ADD_CUSTOM_PORT=" "
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variable cleanup
 CONTAINER_ENV="${CONTAINER_ENV//  / }"
 CONTAINER_LABELS="${CONTAINER_LABELS//  / }"
