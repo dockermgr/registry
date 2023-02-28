@@ -266,10 +266,10 @@ HOST_NGINX_HTTPS_PORT="443"
 HOST_NGINX_UPDATE_CONF="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver [yes/no] [yes/no] [internalPort,otherPort]
-CONTAINER_WEB_SERVER_ENABLED="no"
+CONTAINER_WEB_SERVER_ENABLED="yes"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
-CONTAINER_WEB_SERVER_PORT="80"
+CONTAINER_WEB_SERVER_PORT="5000,5001"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use [http/https/git/ftp/pgsql/mysql/mongodb]
 CONTAINER_HTTP_PROTO="http"
