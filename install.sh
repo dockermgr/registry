@@ -69,9 +69,9 @@ __docker_init() { [ -n "$(type -p dockermgr 2>/dev/null)" ] && dockermgr init ||
 __domain_name() { hostname -f 2>/dev/null | awk -F '.' '{print $(NF-1)"."$NF}' | grep '\.' | grep '^' || hostname -f 2>/dev/null | grep '^' || return 1; }
 __port_in_use() { { [ -d "/etc/nginx/vhosts.d" ] && grep -wRsq "${1:-443}" "/etc/nginx/vhosts.d" || netstat -taupln 2>/dev/null | grep '[0-9]:[0-9]' | grep 'LISTEN' | grep -q "${1:-443}"; } && return 1 || return 0; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__public_ip() { curl -q -LSsf "http://ifconfig.co" | grep '^'; }
-__docker_gateway_ip() { sudo docker network inspect -f '{{json .IPAM.Config}}' bridge | jq -r '.[].Gateway' | grep -v '^$' | grep '^' || echo '172.17.0.1'; }
-__local_lan_ip() { [ -n "$SET_LOCAL_IP" ] && { echo "$SET_LOCAL_IP" | grep -E '192\.168\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '10\.[0-255]\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '172\.[16-31]\.[0-255]\.[0-255]' 2>/dev/null; } || echo "$CURRENT_IP_4"; }
+__public_ip() { curl -q -LSsf "http://ifconfig.co" | grep -v '^$' | head -n1 | grep '^'; }
+__docker_gateway_ip() { sudo docker network inspect -f '{{json .IPAM.Config}}' bridge | jq -r '.[].Gateway' | grep -v '^$' | head -n1 | grep '^' || echo '172.17.0.1'; }
+__local_lan_ip() { [ -n "$SET_LOCAL_IP" ] && { echo "$SET_LOCAL_IP" | grep -E '192\.168\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '10\.[0-255]\.[0-255]\.[0-255]' 2>/dev/null || echo "$SET_LOCAL_IP" | grep -E '172\.[16-31]\.[0-255]\.[0-255]' 2>/dev/null; } | grep -v '^$' || grep -v '172\.17\.0\.1' | head -n1 | grep '^' || echo "$CURRENT_IP_4"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rport() {
   local port
