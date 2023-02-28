@@ -396,7 +396,7 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup arrays
-DOCKER_SET_PUBLISH=("")
+DOCKER_SET_PUBLISH=""
 DOCKER_SET_TMP_PUBLISH=("")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Redfine variables
@@ -728,7 +728,7 @@ DOCKER_SET_LABELS="$(__trim "${DOCKER_SET_LABELS[*]:-}")"
 DOCKER_SET_SYSCTL="$(__trim "${DOCKER_SET_SYSCTL[*]:-}")"
 DOCKER_SET_OPTIONS="$(__trim "${DOCKER_SET_OPTIONS[*]:-}")"
 CONTAINER_COMMANDS="$(__trim "${CONTAINER_COMMANDS[*]:-}")"
-DOCKER_SET_PUBLISH=("$(__trim "${DOCKER_SET_TMP_PUBLISH[@]:-}")")
+DOCKER_SET_PUBLISH="$(__trim "${DOCKER_SET_TMP_PUBLISH[*]:-}")"
 EXECUTE_PRE_INSTALL="docker stop $CONTAINER_NAME;docker rm -f $CONTAINER_NAME"
 EXECUTE_DOCKER_CMD="docker run -d $DOCKER_SET_OPTIONS $DOCKER_SET_LINK $DOCKER_SET_LABELS $DOCKER_SET_CAP $DOCKER_SET_SYSCTL $DOCKER_SET_DEV $DOCKER_SET_MNT $DOCKER_SET_ENV $DOCKER_SET_PUBLISH $HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
 EXECUTE_DOCKER_CMD="$(__trim "$EXECUTE_DOCKER_CMD")"
