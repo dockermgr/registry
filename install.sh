@@ -843,6 +843,7 @@ EOF
     ERROR_LOG="true"
   fi
 fi
+sleep 10
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
 if [ "$NGINX_PROXY" = "yes" ] && [ -w "/etc/nginx/vhosts.d" ]; then
@@ -903,7 +904,7 @@ dockermgr_install_version
 # run exit function
 SET_ADDR="${HOST_LISTEN_ADDR//:*/}"
 SET_PORT="${DOCKER_SET_PUBLISH//--publish /}"
-if docker ps -a | grep -qs "$CONTAINER_NAME"; then
+if docker ps -a 2>&1 | grep -qs "$CONTAINER_NAME"; then
   printf_yellow "The DATADIR is in $DATADIR"
   printf_cyan "$APPNAME has been installed to $INSTDIR"
   if [ -z "$SET_PORT" ]; then
